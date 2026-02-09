@@ -57,7 +57,18 @@ const Login: React.FC = () => {
         <p
           style={{ marginTop: "20px", textAlign: "center", fontSize: "0.9rem" }}
         >
-          Δεν έχεις λογαριασμό; Ζήτα από τον διαχειριστή να σε προσθέσει.
+          Δεν έχεις λογαριασμό;
+          <span
+            onClick={() => navigate("/register")}
+            style={{
+              color: "#306998",
+              cursor: "pointer",
+              fontWeight: "bold",
+              marginLeft: "5px",
+            }}
+          >
+            Κάνε Εγγραφή
+          </span>
         </p>
       </div>
     </div>
@@ -70,7 +81,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
+    height: "80vh",
     backgroundColor: "#f0f2f5",
   },
   card: {

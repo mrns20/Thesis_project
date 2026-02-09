@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from .models import Concept, Question, StudentProgress, UserAnswerLog
 from .serializers import ConceptSerializer, QuestionSerializer, UserSerializer
 import random
+from django.contrib.auth.models import User
 
 # 1. Εγγραφή Χρήστη (Sign Up)
 @api_view(['POST'])
