@@ -12,4 +12,6 @@ urlpatterns = [
     path('concept-map/', views.get_concept_map, name='concept-map'),
     path('question/next/', views.get_next_question, name='next-question'),
     path('submit/', views.submit_answer, name='submit-answer'),
+    # profile
+    path('profile/', views.user_profile, name='user_profile'),
 ]

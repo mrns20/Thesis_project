@@ -6,6 +6,8 @@ from .models import Concept, Question, StudentProgress, UserAnswerLog
 from .serializers import ConceptSerializer, QuestionSerializer, UserSerializer
 import random
 from django.contrib.auth.models import User
+from .models import UserProfile
+from .serializers import UserProfileSerializer
 
 # 1. Εγγραφή Χρήστη (Sign Up)
 @api_view(['POST'])
@@ -117,3 +119,27 @@ def submit_answer(request):
         'new_mastery': int(progress.mastery_level * 100),
         'recommendation': recommendation
     })
+
+# from .models import UserProfile from .serializers import UserProfileSerializer
+
+# Ανάκτηση και Ενημέρωση Προφίλ
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    profile, created = UserProfile.objects.get_or_create(user=user)
+
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        # Ενημέρωση στοιχείων
+        profile.bio = request.data.get('bio', profile.bio)
+        profile.phone = request.data.get('phone', profile.phone)
+
+        # ΣΗΜΑΝΤΙΚΟ: Μόλις πατήσει αποθήκευση, δεν είναι πια "πρώτη φορά"
+        profile.first_login = False 
+        profile.save()
+
+        return Response({'message': 'Το προφίλ ενημερώθηκε!', 'first_login': False})

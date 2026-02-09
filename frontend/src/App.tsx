@@ -10,6 +10,7 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Quiz from "./components/Quiz";
 import Footer from "./components/Footer"; // <--- Μην ξεχάσεις αυτό!
+import UserProfile from "./components/UserProfile";
 
 // Έλεγχος αν ο χρήστης είναι συνδεδεμένος
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -51,6 +52,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <Quiz />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <UserProfile />
                 </PrivateRoute>
               }
             />

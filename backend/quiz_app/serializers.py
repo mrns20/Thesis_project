@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Concept, Question, StudentProgress
+from .models import UserProfile # Μην ξεχάσεις το import
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,3 +51,9 @@ class QuestionSerializer(serializers.ModelSerializer):
         # ΠΡΟΣΟΧΗ: Δεν στέλνουμε το 'correct_option' στο frontend για να μην κλέβουν!
         fields = ['id', 'text', 'code_snippet', 'question_type', 'difficulty', 
                   'option_a', 'option_b', 'option_c', 'option_d']
+        
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['bio', 'phone', 'first_login']       

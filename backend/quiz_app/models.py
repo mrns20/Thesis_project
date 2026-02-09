@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # 1. ΤΟ ΜΟΝΤΕΛΟ ΓΝΩΣΗΣ
 class Concept(models.Model):
@@ -65,3 +67,26 @@ class UserAnswerLog(models.Model):
     selected_option = models.CharField(max_length=1)
     is_correct = models.BooleanField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+
+# ... (Τα υπόλοιπα μοντέλα σου Concept, Question κλπ μένουν ως έχουν) ...
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    # ΑΥΤΟ ΕΙΝΑΙ ΤΟ ΚΛΕΙΔΙ:
+    first_login = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.user.username
+
+# Αυτόματος μηχανισμός: Όταν φτιάχνεται User, φτιάχνει και UserProfile
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.userprofile.save()

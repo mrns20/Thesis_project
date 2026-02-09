@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authAPI } from "../api";
+import axios from "axios";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -10,27 +10,75 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     try {
-      await authAPI.login(username, password);
+      // 1. ΣΥΝΔΕΣΗ (Login)
+      // Χρησιμοποιούμε απευθείας το URL που ξέρουμε ότι δουλεύει
+      const res = await axios.post("http://127.0.0.1:8000/api/login/", {
+        username: username,
+        password: password,
+      });
+
+      // 2. ΑΠΟΘΗΚΕΥΣΗ TOKENS
+      const accessToken = res.data.access;
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", res.data.refresh);
+
+      // 3. ΕΛΕΓΧΟΣ ΠΡΟΦΙΛ (First Login Check)
+      // Το βάζουμε σε try/catch ώστε αν αποτύχει, να ΜΗΝ σταματήσει η σύνδεση
+      try {
+        const profileRes = await axios.get(
+          "http://127.0.0.1:8000/api/profile/",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          },
+        );
+
+        // Αν είναι η πρώτη φορά -> Πάμε στο Προφίλ
+        if (profileRes.data.first_login === true) {
+          navigate("/profile");
+          return;
+        }
+      } catch (profileErr) {
+        console.warn(
+          "Το προφίλ δεν βρέθηκε ή υπήρξε σφάλμα. Συνεχίζουμε...",
+          profileErr,
+        );
+        // Δεν κάνουμε τίποτα, απλά προχωράμε στο Dashboard
+      }
+
+      // 4. ΤΕΛΙΚΟΣ ΠΡΟΟΡΙΣΜΟΣ -> Dashboard
       navigate("/dashboard");
-    } catch (err) {
-      setError("Λάθος όνομα χρήστη ή κωδικός!");
+    } catch (err: any) {
+      console.error("Σφάλμα Login:", err);
+      // Εμφάνιση μηνύματος μόνο αν αποτύχει το ίδιο το Login
+      setError("Λάθος όνομα χρήστη ή κωδικός.");
     }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-          MyPython 🐍
+        <h2
+          style={{ textAlign: "center", marginBottom: "20px", color: "#333" }}
+        >
+          🔐 Σύνδεση
         </h2>
-        <h4 style={{ textAlign: "center", color: "#666" }}>Σύνδεση</h4>
 
         {error && <div style={styles.error}>{error}</div>}
 
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: "15px" }}>
-            <label>Username</label>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontWeight: "bold",
+              }}
+            >
+              Username
+            </label>
             <input
               type="text"
               value={username}
@@ -40,7 +88,15 @@ const Login: React.FC = () => {
             />
           </div>
           <div style={{ marginBottom: "20px" }}>
-            <label>Password</label>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontWeight: "bold",
+              }}
+            >
+              Password
+            </label>
             <input
               type="password"
               value={password}
@@ -75,17 +131,17 @@ const Login: React.FC = () => {
   );
 };
 
-// Απλό CSS μέσα στο αρχείο για ταχύτητα
 const styles = {
   container: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "80vh",
+    height: "100%",
+    minHeight: "80vh",
     backgroundColor: "#f0f2f5",
   },
   card: {
-    width: "400px",
+    width: "350px",
     padding: "40px",
     backgroundColor: "white",
     borderRadius: "8px",
@@ -98,6 +154,7 @@ const styles = {
     borderRadius: "4px",
     border: "1px solid #ddd",
     boxSizing: "border-box" as "border-box",
+    fontSize: "16px",
   },
   button: {
     width: "100%",
@@ -109,6 +166,7 @@ const styles = {
     cursor: "pointer",
     fontSize: "16px",
     fontWeight: "bold" as "bold",
+    marginTop: "10px",
   },
   error: {
     backgroundColor: "#ffebee",
@@ -117,6 +175,7 @@ const styles = {
     borderRadius: "4px",
     marginBottom: "15px",
     textAlign: "center" as "center",
+    border: "1px solid #ef9a9a",
   },
 };
 

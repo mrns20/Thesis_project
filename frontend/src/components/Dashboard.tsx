@@ -33,6 +33,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div style={{ padding: "40px", maxWidth: "1000px", margin: "0 auto" }}>
+      {/* --- HEADER --- */}
       <div
         style={{
           display: "flex",
@@ -42,14 +43,44 @@ const Dashboard: React.FC = () => {
         }}
       >
         <h1>🗺️ Ο Χάρτης της Python</h1>
-        <button
-          onClick={handleLogout}
-          style={{ padding: "8px 16px", cursor: "pointer" }}
-        >
-          Αποσύνδεση
-        </button>
+
+        {/* Ομάδα Κουμπιών (Προφίλ + Logout) */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          {/* Κουμπί Προφίλ */}
+          <button
+            onClick={() => navigate("/profile")}
+            style={{
+              padding: "8px 16px",
+              cursor: "pointer",
+              backgroundColor: "#2196f3", // Μπλε
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              fontWeight: "bold",
+            }}
+          >
+            👤 Προφίλ
+          </button>
+
+          {/* Κουμπί Logout */}
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "8px 16px",
+              cursor: "pointer",
+              backgroundColor: "#f44336", // Κόκκινο για να ξεχωρίζει
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              fontWeight: "bold",
+            }}
+          >
+            Αποσύνδεση
+          </button>
+        </div>
       </div>
 
+      {/* --- GRID ΜΕ ΚΑΡΤΕΣ --- */}
       <div style={styles.grid}>
         {concepts.map((concept) => (
           <div
