@@ -38,37 +38,94 @@ def get_concept_map(request):
 def get_next_question(request):
     user = request.user
     
-    # ΒΗΜΑ 1: Βρες ποιο Concept πρέπει να μάθει τώρα
-    # Ψάχνουμε το πρώτο concept που είναι ξεκλείδωτο αλλά ΟΧΙ τελειωμένο (mastery < 100%)
-    concepts = Concept.objects.all()
-    target_concept = None
-    
-    for concept in concepts:
-        # Check mastery
-        prog, _ = StudentProgress.objects.get_or_create(user=user, concept=concept)
-        
-        # Αν το ξέρει τέλεια, πάμε στο επόμενο
-        if prog.mastery_level >= 1.0:
-            continue
-            
-        # Check prerequisites (Απλοποιημένο: Αν δεν το έχει ξεκλειδώσει, δεν το δίνουμε)
-        # Εδώ θα μπορούσαμε να βάλουμε λογική "γύρνα πίσω στα προαπαιτούμενα"
-        
-        target_concept = concept
-        break
-    
-    # Αν έχει μάθει τα πάντα!
-    if not target_concept:
-        return Response({'message': 'Συγχαρητήρια! Έχεις τερματίσει την ύλη!', 'completed': True})
+    # 1. ΕΛΕΓΧΟΣ: Ζήτησε ο χρήστης συγκεκριμένο μάθημα;
+    requested_id = request.query_params.get('concept_id')
+    active_concept = None
 
-    # ΒΗΜΑ 2: Διάλεξε μια ερώτηση από αυτό το Concept
-    # Που δεν την έχει απαντήσει σωστά ακόμα
-    questions = Question.objects.filter(concept=target_concept)
+    if requested_id:
+        # Αν ζήτησε συγκεκριμένο, προσπαθούμε να βρούμε αυτό
+        active_concept = get_object_or_404(Concept, id=requested_id)
+        
+        # Ελέγχουμε αν είναι ξεκλειδωμένο
+        progress, _ = StudentProgress.objects.get_or_create(user=user, concept=active_concept)
+        if not progress.is_unlocked:
+             return Response({'message': 'This module is locked.'}, status=403)
+             
+        # Αν είναι ολοκληρωμένο (Mastery 100%), στέλνουμε μήνυμα τέλους
+        if progress.mastery_level >= 1.0:
+            return Response({
+                'message': 'Course completed!',
+                'concept': active_concept.id, # Στέλνουμε το ID πίσω
+                'options': None
+            }, status=200)
+
+    else:
+        # 2. ADAPTIVE LOGIC (Αν δεν ζήτησε συγκεκριμένο)
+        concepts = Concept.objects.all().order_by('id')
+        for concept in concepts:
+            progress, created = StudentProgress.objects.get_or_create(user=user, concept=concept)
+            
+            # Auto-Unlock Logic
+            if not progress.is_unlocked:
+                prereqs_met = True
+                for req in concept.prerequisites.all():
+                    req_prog = StudentProgress.objects.filter(user=user, concept=req).first()
+                    if not req_prog or req_prog.mastery_level < 0.5:
+                        prereqs_met = False
+                        break
+                if prereqs_met:
+                    progress.is_unlocked = True
+                    progress.save()
+                else:
+                    return Response({'message': 'Previous modules not completed yet.'}, status=403)
+
+            if progress.mastery_level < 1.0:
+                active_concept = concept
+                break
     
-    # Φιλτράρουμε αυτές που έχει ήδη απαντήσει σωστά
-    # (Εδώ κάνουμε μια απλή επιλογή random για τώρα)
-    question = random.choice(questions)
+    # 3. ΑΝ ΔΕΝ ΒΡΕΘΗΚΕ ΕΝΕΡΓΟ CONCEPT
+    if active_concept is None:
+        # Αν μας ζήτησε ID αλλά ήταν completed, το χειριστήκαμε πάνω.
+        # Αν δεν μας ζήτησε και δεν βρέθηκε τίποτα, σημαίνει όλα τέλος.
+        last_progress = StudentProgress.objects.filter(user=user).order_by('-last_updated').first()
+        last_id = last_progress.concept.id if last_progress else None
+        
+        return Response({
+            'message': 'Course completed!',
+            'concept': last_id,
+            'options': None
+        }, status=200)
+
+    # 4. ΕΠΙΛΟΓΗ ΕΡΩΤΗΣΗΣ (Για το active_concept)
+    all_questions = Question.objects.filter(concept=active_concept)
     
+    correctly_answered_ids = UserAnswerLog.objects.filter(
+        user=user, 
+        question__concept=active_concept,
+        is_correct=True
+    ).values_list('question_id', flat=True)
+    
+    candidates = all_questions.exclude(id__in=correctly_answered_ids)
+    
+    if not candidates.exists():
+         # Αν δεν υπάρχουν ερωτήσεις αλλά το mastery < 1.0
+         # Φέρνουμε όλες για επανάληψη
+         candidates = all_questions
+
+    attempted_ids = UserAnswerLog.objects.filter(
+        user=user,
+        question__concept=active_concept
+    ).values_list('question_id', flat=True)
+    
+    fresh_questions = candidates.exclude(id__in=attempted_ids)
+    
+    if fresh_questions.exists():
+        question = random.choice(list(fresh_questions))
+    elif candidates.exists():
+        question = random.choice(list(candidates))
+    else:
+        return Response({'message': 'No questions found.'}, status=404)
+
     serializer = QuestionSerializer(question)
     return Response(serializer.data)
 
@@ -76,48 +133,62 @@ def get_next_question(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def submit_answer(request):
+    question_id = request.data.get('question_id')
+    selected_option = request.data.get('selected_option')
     user = request.user
-    q_id = request.data.get('question_id')
-    selected = request.data.get('selected_option') # 'A', 'B', 'C', 'D'
+
+    # 1. Βρες την ερώτηση
+    question = get_object_or_404(Question, id=question_id)
     
-    question = get_object_or_404(Question, id=q_id)
-    is_correct = (selected == question.correct_option)
+    # 2. Έλεγχος αν είναι σωστό
+    is_correct = (selected_option == question.correct_option)
     
-    # Καταγραφή στο Log
+    # 3. Επεξήγηση (Αν υπάρχει στη βάση, αλλιώς default κείμενο)
+    explanation = question.explanation 
+    if not explanation:
+        explanation = "Σωστή απάντηση!" if is_correct else f"Η σωστή απάντηση ήταν η {question.correct_option}."
+
+    # 4. Καταγραφή στο Ιστορικό (Log)
     UserAnswerLog.objects.create(
-        user=user, question=question, selected_option=selected, is_correct=is_correct
+        user=user,
+        question=question,
+        selected_option=selected_option,
+        is_correct=is_correct
     )
+
+    # --- ΥΠΟΛΟΓΙΣΜΟΣ MASTERY (ΠΡΟΟΔΟΥ) ---
     
-    # Ενημέρωση Προόδου (The Learning Model)
-    progress, _ = StudentProgress.objects.get_or_create(user=user, concept=question.concept)
-    progress.total_attempts += 1
+    # Α. Πόσες ερωτήσεις έχει συνολικά αυτό το Concept;
+    total_questions_count = Question.objects.filter(concept=question.concept).count()
     
-    recommendation = None
-    
-    if is_correct:
-        progress.correct_attempts += 1
-        # Αύξηση Mastery (Απλή λογική: +20% για κάθε σωστή)
-        progress.mastery_level = min(1.0, progress.mastery_level + 0.2)
-        message = "Σωστά! Συνέχισε έτσι."
+    # Β. Πόσες ΜΟΝΑΔΙΚΕΣ ερωτήσεις έχει απαντήσει ΣΩΣΤΑ ο χρήστης σε αυτό το concept;
+    correct_answers_count = UserAnswerLog.objects.filter(
+        user=user,
+        question__concept=question.concept,
+        is_correct=True
+    ).values('question_id').distinct().count()
+
+    # Γ. Υπολογισμός ποσοστού (π.χ. 2 σωστές στις 4 ερωτήσεις = 0.5 mastery)
+    if total_questions_count > 0:
+        new_mastery = correct_answers_count / total_questions_count
     else:
-        # Μείωση Mastery (αν κάνει λάθος, ίσως ξέχασε κάτι)
-        progress.mastery_level = max(0.0, progress.mastery_level - 0.1)
-        message = "Λάθος."
-        # ΕΔΩ ΕΙΝΑΙ Η ΕΞΥΠΝΑΔΑ: Του δίνουμε το Link να διαβάσει
-        if question.concept.remedial_resource:
-            recommendation = {
-                'text': f"Φαίνεται να δυσκολεύεσαι με: {question.concept.name}.",
-                'link': question.concept.remedial_resource
-            }
-            
-    progress.save()
-    
+        new_mastery = 1.0 # Αν δεν υπάρχουν ερωτήσεις, το θεωρούμε τελειωμένο
+
+    # Δ. Ενημέρωση της προόδου
+    StudentProgress.objects.update_or_create(
+        user=user,
+        concept=question.concept,
+        defaults={
+            'mastery_level': new_mastery,
+            # Αν θες να κρατάς και πόσες προσπάθειες έκανε συνολικά:
+            # 'total_attempts': F('total_attempts') + 1 
+        }
+    )
+
     return Response({
         'correct': is_correct,
-        'correct_option': question.correct_option, # Τώρα του λέμε ποιο ήταν το σωστό
-        'message': message,
-        'new_mastery': int(progress.mastery_level * 100),
-        'recommendation': recommendation
+        'explanation': explanation,
+        'new_mastery': new_mastery
     })
 
 # from .models import UserProfile from .serializers import UserProfileSerializer
@@ -143,3 +214,53 @@ def user_profile(request):
         profile.save()
 
         return Response({'message': 'Το προφίλ ενημερώθηκε!', 'first_login': False})
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def restart_concept(request):
+    user = request.user
+    concept_id = request.data.get('concept_id')
+    
+    if not concept_id:
+        return Response({'error': 'Concept ID is required'}, status=400)
+
+    # 1. Μηδενισμός Προόδου (StudentProgress)
+    try:
+        progress = StudentProgress.objects.get(user=user, concept_id=concept_id)
+        progress.mastery_level = 0.0
+        progress.correct_attempts = 0
+        progress.total_attempts = 0
+        progress.save()
+    except StudentProgress.DoesNotExist:
+        pass # Αν δεν υπάρχει πρόοδος, δεν πειράζει
+
+    # 2. Διαγραφή Ιστορικού Απαντήσεων (UserAnswerLog)
+    # Για να μπορεί ο αλγόριθμος να ξανα-επιλέξει τις ίδιες ερωτήσεις
+    UserAnswerLog.objects.filter(user=user, question__concept_id=concept_id).delete()
+
+    return Response({'message': 'Concept reset successfully'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_concept_history(request, concept_id):
+    """Επιστρέφει το ιστορικό απαντήσεων του χρήστη για ένα concept"""
+    user = request.user
+    
+    # Βρίσκουμε όλες τις απαντήσεις του χρήστη για αυτό το concept
+    logs = UserAnswerLog.objects.filter(
+        user=user, 
+        question__concept_id=concept_id
+    ).select_related('question')
+
+    history_data = []
+    for log in logs:
+        history_data.append({
+            'questionText': log.question.text,
+            'userAnswer': log.selected_option,
+            'isCorrect': log.is_correct,
+            # Αν είναι σωστό, μήνυμα επιτυχίας, αλλιώς την εξήγηση
+            'explanation': log.question.explanation if log.question.explanation else ("Σωστή απάντηση!" if log.is_correct else "Λάθος απάντηση."),
+            'remedialLink': log.question.concept.remedial_resource if not log.is_correct else None
+        })
+    
+    return Response(history_data)

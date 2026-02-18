@@ -31,6 +31,16 @@ const Dashboard: React.FC = () => {
     navigate("/");
   };
 
+  // --- Η ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΠΟΥ ZHTΗΣΕΣ ---
+  // Αποθηκεύει ποιο μάθημα διάλεξες και σε πάει στο Quiz
+  const handleStartQuiz = (conceptId: number) => {
+    // 1. Αποθήκευση ID στο LocalStorage
+    localStorage.setItem("currentConceptId", conceptId.toString());
+
+    // 2. Μετάβαση στο Quiz
+    navigate("/quiz");
+  };
+
   return (
     <div style={{ padding: "40px", maxWidth: "1000px", margin: "0 auto" }}>
       {/* --- HEADER --- */}
@@ -44,15 +54,13 @@ const Dashboard: React.FC = () => {
       >
         <h1>🗺️ Ο Χάρτης της Python</h1>
 
-        {/* Ομάδα Κουμπιών (Προφίλ + Logout) */}
         <div style={{ display: "flex", gap: "10px" }}>
-          {/* Κουμπί Προφίλ */}
           <button
             onClick={() => navigate("/profile")}
             style={{
               padding: "8px 16px",
               cursor: "pointer",
-              backgroundColor: "#2196f3", // Μπλε
+              backgroundColor: "#2196f3",
               color: "white",
               border: "none",
               borderRadius: "5px",
@@ -62,13 +70,12 @@ const Dashboard: React.FC = () => {
             👤 Προφίλ
           </button>
 
-          {/* Κουμπί Logout */}
           <button
             onClick={handleLogout}
             style={{
               padding: "8px 16px",
               cursor: "pointer",
-              backgroundColor: "#f44336", // Κόκκινο για να ξεχωρίζει
+              backgroundColor: "#f44336",
               color: "white",
               border: "none",
               borderRadius: "5px",
@@ -90,13 +97,15 @@ const Dashboard: React.FC = () => {
               opacity: concept.is_unlocked ? 1 : 0.6,
               borderLeft:
                 concept.mastery === 100
-                  ? "5px solid #4caf50"
-                  : "5px solid #2196f3",
+                  ? "5px solid #000000" // Πράσινο αν τελείωσε
+                  : concept.is_unlocked
+                    ? "5px solid #2196f3" // Μπλε αν είναι ενεργό
+                    : "5px solid #999", // Γκρι αν είναι κλειδωμένο
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <h3>{concept.name}</h3>
-              {concept.mastery === 100 && <span>✅</span>}
+              {concept.mastery === 100 && <span> </span>}
               {!concept.is_unlocked && <span>🔒</span>}
             </div>
 
@@ -110,15 +119,24 @@ const Dashboard: React.FC = () => {
               ></div>
             </div>
             <p style={{ fontSize: "0.8rem", textAlign: "right" }}>
-              {concept.mastery}% Κατάκτηση
+              {concept.mastery}% ολοκληρωμένο
             </p>
 
-            {concept.is_unlocked && concept.mastery < 100 && (
+            {/* ΚΟΥΜΠΙΑ ΕΝΕΡΓΕΙΑΣ */}
+            {concept.is_unlocked && (
               <button
-                onClick={() => navigate("/quiz")}
-                style={styles.actionBtn}
+                // ΕΔΩ ΚΑΛΟΥΜΕ ΤΗ ΝΕΑ ΣΥΝΑΡΤΗΣΗ
+                onClick={() => handleStartQuiz(concept.id)}
+                style={{
+                  ...styles.actionBtn,
+                  // Αλλάζουμε χρώμα αν είναι επανάληψη
+                  backgroundColor:
+                    concept.mastery === 100 ? "#ff9800" : "#2196f3",
+                }}
               >
-                Συνέχισε τη Μάθηση ▶
+                {concept.mastery === 100
+                  ? "Αποτελέσματα"
+                  : "▶ Συνέχισε τη Μάθηση"}
               </button>
             )}
           </div>
@@ -126,8 +144,9 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div style={{ marginTop: "50px", textAlign: "center" }}>
+        {/* Αυτό το κουμπί τώρα πάει στο γενικό quiz, ή μπορείς να το βγάλεις αν θες */}
         <button onClick={() => navigate("/quiz")} style={styles.bigButton}>
-          🚀 Πάμε στο Κουίζ!
+          🚀 Γενική Εξάσκηση
         </button>
       </div>
     </div>
@@ -164,11 +183,12 @@ const styles = {
     marginTop: "15px",
     width: "100%",
     padding: "10px",
-    backgroundColor: "#2196f3",
     color: "white",
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
+    fontWeight: "bold",
+    transition: "background 0.3s",
   },
   bigButton: {
     padding: "15px 40px",

@@ -37,12 +37,22 @@ export const authAPI = {
 
 export const quizAPI = {
   getConceptMap: () => api.get("/concept-map/"),
-  getNextQuestion: () => api.get("/question/next/"),
+  // Πλέον δέχεται προαιρετικά ένα conceptId
+  getNextQuestion: (conceptId?: number | null) => {
+    if (conceptId) {
+      return api.get(`/question/next/?concept_id=${conceptId}`);
+    }
+    return api.get("/question/next/");
+  },
   submitAnswer: (questionId: number, selectedOption: string) =>
     api.post("/submit/", {
       question_id: questionId,
       selected_option: selectedOption,
     }),
+  restartConcept: (conceptId: number) =>
+    api.post("/concept/restart/", { concept_id: conceptId }),
+
+  getHistory: (conceptId: number) => api.get(`/concept/${conceptId}/history/`),
 };
 
 export default api;

@@ -14,4 +14,6 @@ urlpatterns = [
     path('submit/', views.submit_answer, name='submit-answer'),
     # profile
     path('profile/', views.user_profile, name='user_profile'),
+    path('concept/<int:concept_id>/history/', views.get_concept_history, name='concept_history'),
+    path('concept/restart/', views.restart_concept, name='restart_concept')
 ]
