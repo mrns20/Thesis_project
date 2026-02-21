@@ -38,34 +38,42 @@ def get_concept_map(request):
 def get_next_question(request):
     user = request.user
     
-    # 1. ΕΛΕΓΧΟΣ: Ζήτησε ο χρήστης συγκεκριμένο μάθημα;
     requested_id = request.query_params.get('concept_id')
     active_concept = None
 
     if requested_id:
         # Αν ζήτησε συγκεκριμένο, προσπαθούμε να βρούμε αυτό
         active_concept = get_object_or_404(Concept, id=requested_id)
-        
-        # Ελέγχουμε αν είναι ξεκλειδωμένο
         progress, _ = StudentProgress.objects.get_or_create(user=user, concept=active_concept)
+        
+        # --- ΔΙΟΡΘΩΣΗ: AUTO-UNLOCK LOGIC ΚΑΙ ΕΔΩ ---
         if not progress.is_unlocked:
-             return Response({'message': 'This module is locked.'}, status=403)
-             
-        # Αν είναι ολοκληρωμένο (Mastery 100%), στέλνουμε μήνυμα τέλους
+            prereqs_met = True
+            for req in active_concept.prerequisites.all():
+                req_prog = StudentProgress.objects.filter(user=user, concept=req).first()
+                if not req_prog or req_prog.mastery_level < 0.5:
+                    prereqs_met = False
+                    break
+            
+            if prereqs_met:
+                progress.is_unlocked = True
+                progress.save()
+            else:
+                 return Response({'message': 'This module is locked.'}, status=403)
+        # -------------------------------------------
+
         if progress.mastery_level >= 1.0:
             return Response({
                 'message': 'Course completed!',
-                'concept': active_concept.id, # Στέλνουμε το ID πίσω
+                'concept': active_concept.id,
                 'options': None
             }, status=200)
 
     else:
-        # 2. ADAPTIVE LOGIC (Αν δεν ζήτησε συγκεκριμένο)
         concepts = Concept.objects.all().order_by('id')
         for concept in concepts:
             progress, created = StudentProgress.objects.get_or_create(user=user, concept=concept)
             
-            # Auto-Unlock Logic
             if not progress.is_unlocked:
                 prereqs_met = True
                 for req in concept.prerequisites.all():
@@ -83,10 +91,7 @@ def get_next_question(request):
                 active_concept = concept
                 break
     
-    # 3. ΑΝ ΔΕΝ ΒΡΕΘΗΚΕ ΕΝΕΡΓΟ CONCEPT
     if active_concept is None:
-        # Αν μας ζήτησε ID αλλά ήταν completed, το χειριστήκαμε πάνω.
-        # Αν δεν μας ζήτησε και δεν βρέθηκε τίποτα, σημαίνει όλα τέλος.
         last_progress = StudentProgress.objects.filter(user=user).order_by('-last_updated').first()
         last_id = last_progress.concept.id if last_progress else None
         
@@ -96,7 +101,6 @@ def get_next_question(request):
             'options': None
         }, status=200)
 
-    # 4. ΕΠΙΛΟΓΗ ΕΡΩΤΗΣΗΣ (Για το active_concept)
     all_questions = Question.objects.filter(concept=active_concept)
     
     correctly_answered_ids = UserAnswerLog.objects.filter(
@@ -108,8 +112,6 @@ def get_next_question(request):
     candidates = all_questions.exclude(id__in=correctly_answered_ids)
     
     if not candidates.exists():
-         # Αν δεν υπάρχουν ερωτήσεις αλλά το mastery < 1.0
-         # Φέρνουμε όλες για επανάληψη
          candidates = all_questions
 
     attempted_ids = UserAnswerLog.objects.filter(
@@ -201,13 +203,36 @@ def user_profile(request):
     profile, created = UserProfile.objects.get_or_create(user=user)
 
     if request.method == 'GET':
-        serializer = UserProfileSerializer(profile)
-        return Response(serializer.data)
+        # Αν χρησιμοποιείς Serializer, βεβαιώσου ότι στο serializers.py έχεις προσθέσει 
+        # τα fields: first_name, last_name, email (από το User model) και learning_style.
+        # Εναλλακτικά, μπορείς να τα επιστρέψεις χειροκίνητα έτσι:
+        return Response({
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'bio': profile.bio,
+            'phone': profile.phone, # (Αν θες να το κρατήσεις)
+            'learning_style': getattr(profile, 'learning_style', 'visual'),
+            'first_login': getattr(profile, 'first_login', False),
+        })
 
     elif request.method == 'POST':
-        # Ενημέρωση στοιχείων
-        profile.bio = request.data.get('bio', profile.bio)
-        profile.phone = request.data.get('phone', profile.phone)
+        data = request.data
+        
+        # 1. Ενημέρωση στοιχείων του βασικού User (Όνομα, Επώνυμο, Email)
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'email' in data:
+            user.email = data['email']
+        user.save()
+
+        # 2. Ενημέρωση στοιχείων του Profile (Bio, Phone, Learning Style)
+        profile.bio = data.get('bio', profile.bio)
+        profile.phone = data.get('phone', profile.phone) # (Αν θες να το κρατήσεις)
+        if 'learning_style' in data:
+            profile.learning_style = data['learning_style']
 
         # ΣΗΜΑΝΤΙΚΟ: Μόλις πατήσει αποθήκευση, δεν είναι πια "πρώτη φορά"
         profile.first_login = False 

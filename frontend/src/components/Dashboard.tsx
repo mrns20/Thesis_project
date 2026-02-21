@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { quizAPI, authAPI } from "../api";
+import Navbar from "./Navbar";
 
 interface Concept {
   id: number;
@@ -42,114 +43,85 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1000px", margin: "0 auto" }}>
-      {/* --- HEADER --- */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "40px",
-        }}
-      >
-        <h1>🗺️ Ο Χάρτης της Python</h1>
+    <>
+      {/* Το Νέο Navigation Bar */}
+      <Navbar />
 
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            onClick={() => navigate("/profile")}
-            style={{
-              padding: "8px 16px",
-              cursor: "pointer",
-              backgroundColor: "#2196f3",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              fontWeight: "bold",
-            }}
-          >
-            👤 Προφίλ
-          </button>
+      <div style={{ padding: "40px", maxWidth: "1000px", margin: "0 auto" }}>
+        {/* Κεντραρισμένος Τίτλος */}
+        <h1
+          style={{ textAlign: "center", marginBottom: "40px", color: "#333" }}
+        >
+          🗺️ Ο Χάρτης της Python
+        </h1>
 
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: "8px 16px",
-              cursor: "pointer",
-              backgroundColor: "#f44336",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              fontWeight: "bold",
-            }}
-          >
-            Αποσύνδεση
+        {/* --- GRID ΜΕ ΚΑΡΤΕΣ --- */}
+        <div style={styles.grid}>
+          {concepts.map((concept) => (
+            <div
+              key={concept.id}
+              style={{
+                ...styles.card,
+                opacity: concept.is_unlocked ? 1 : 0.6,
+                borderLeft:
+                  concept.mastery === 100
+                    ? "5px solid #000000" // Πράσινο αν τελείωσε (το είχες μαύρο στον κώδικά σου, το αφήνω όπως το είχες)
+                    : concept.is_unlocked
+                      ? "5px solid #2196f3" // Μπλε αν είναι ενεργό
+                      : "5px solid #999", // Γκρι αν είναι κλειδωμένο
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <h3>{concept.name}</h3>
+                {concept.mastery === 100 && <span> </span>}
+                {!concept.is_unlocked && <span>🔒</span>}
+              </div>
+
+              <p style={{ color: "#666", fontSize: "0.9rem" }}>
+                {concept.description}
+              </p>
+
+              <div style={styles.progressBar}>
+                <div
+                  style={{
+                    ...styles.progressFill,
+                    width: `${concept.mastery}%`,
+                  }}
+                ></div>
+              </div>
+              <p style={{ fontSize: "0.8rem", textAlign: "right" }}>
+                {concept.mastery}% ολοκληρωμένο
+              </p>
+
+              {/* ΚΟΥΜΠΙΑ ΕΝΕΡΓΕΙΑΣ */}
+              {concept.is_unlocked && (
+                <button
+                  // ΕΔΩ ΚΑΛΟΥΜΕ ΤΗ ΝΕΑ ΣΥΝΑΡΤΗΣΗ
+                  onClick={() => handleStartQuiz(concept.id)}
+                  style={{
+                    ...styles.actionBtn,
+                    // Αλλάζουμε χρώμα αν είναι επανάληψη
+                    backgroundColor:
+                      concept.mastery === 100 ? "#ff9800" : "#2196f3",
+                  }}
+                >
+                  {concept.mastery === 100
+                    ? "Αποτελέσματα"
+                    : "▶ Συνέχισε τη Μάθηση"}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: "50px", textAlign: "center" }}>
+          {/* Αυτό το κουμπί τώρα πάει στο γενικό quiz, ή μπορείς να το βγάλεις αν θες */}
+          <button onClick={() => navigate("/quiz")} style={styles.bigButton}>
+            🚀 Γενική Εξάσκηση
           </button>
         </div>
       </div>
-
-      {/* --- GRID ΜΕ ΚΑΡΤΕΣ --- */}
-      <div style={styles.grid}>
-        {concepts.map((concept) => (
-          <div
-            key={concept.id}
-            style={{
-              ...styles.card,
-              opacity: concept.is_unlocked ? 1 : 0.6,
-              borderLeft:
-                concept.mastery === 100
-                  ? "5px solid #000000" // Πράσινο αν τελείωσε
-                  : concept.is_unlocked
-                    ? "5px solid #2196f3" // Μπλε αν είναι ενεργό
-                    : "5px solid #999", // Γκρι αν είναι κλειδωμένο
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <h3>{concept.name}</h3>
-              {concept.mastery === 100 && <span> </span>}
-              {!concept.is_unlocked && <span>🔒</span>}
-            </div>
-
-            <p style={{ color: "#666", fontSize: "0.9rem" }}>
-              {concept.description}
-            </p>
-
-            <div style={styles.progressBar}>
-              <div
-                style={{ ...styles.progressFill, width: `${concept.mastery}%` }}
-              ></div>
-            </div>
-            <p style={{ fontSize: "0.8rem", textAlign: "right" }}>
-              {concept.mastery}% ολοκληρωμένο
-            </p>
-
-            {/* ΚΟΥΜΠΙΑ ΕΝΕΡΓΕΙΑΣ */}
-            {concept.is_unlocked && (
-              <button
-                // ΕΔΩ ΚΑΛΟΥΜΕ ΤΗ ΝΕΑ ΣΥΝΑΡΤΗΣΗ
-                onClick={() => handleStartQuiz(concept.id)}
-                style={{
-                  ...styles.actionBtn,
-                  // Αλλάζουμε χρώμα αν είναι επανάληψη
-                  backgroundColor:
-                    concept.mastery === 100 ? "#ff9800" : "#2196f3",
-                }}
-              >
-                {concept.mastery === 100
-                  ? "Αποτελέσματα"
-                  : "▶ Συνέχισε τη Μάθηση"}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: "50px", textAlign: "center" }}>
-        {/* Αυτό το κουμπί τώρα πάει στο γενικό quiz, ή μπορείς να το βγάλεις αν θες */}
-        <button onClick={() => navigate("/quiz")} style={styles.bigButton}>
-          🚀 Γενική Εξάσκηση
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 

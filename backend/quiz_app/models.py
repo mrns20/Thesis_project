@@ -90,6 +90,7 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
     first_login = models.BooleanField(default=True)
+    learning_style = models.CharField(max_length=20, default='visual')
 
     def __str__(self):
         return self.user.username
