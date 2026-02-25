@@ -31,7 +31,23 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div style={styles.container}>
+    // Προσθήκη flexDirection: column για να μπει το logo από πάνω
+    <div style={{ ...styles.container, flexDirection: "column" }}>
+      {/* ΤΟ ΝΕΟ ΛΟΓΟΤΥΠΟ */}
+      <h1
+        style={{
+          color: "#37b9a4",
+          fontSize: "3.5rem",
+          fontWeight: "900",
+          fontFamily: '"Nunito", sans-serif',
+          marginBottom: "30px",
+          textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+          userSelect: "none",
+        }}
+      >
+        &lt;&gt;MyPython&lt;/&gt;
+      </h1>
+
       <div style={styles.card}>
         <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
           📝 Εγγραφή
@@ -110,7 +126,8 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "80vh",
+    // ΑΛΛΑΓΗ ΕΔΩ: Αφήνουμε χώρο για το footer (100vh - 100px)
+    minHeight: "80vh",
     backgroundColor: "#f0f2f5",
   },
   card: {
@@ -131,7 +148,7 @@ const styles = {
   button: {
     width: "100%",
     padding: "12px",
-    backgroundColor: "#4caf50",
+    backgroundColor: "#37b9a4",
     color: "white",
     border: "none",
     borderRadius: "4px",
@@ -149,7 +166,7 @@ const styles = {
   },
   success: {
     backgroundColor: "#e8f5e9",
-    color: "#2e7d32",
+    color: "#37b9a4",
     padding: "20px",
     borderRadius: "4px",
     textAlign: "center" as "center",

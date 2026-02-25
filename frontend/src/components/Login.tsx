@@ -14,7 +14,6 @@ const Login: React.FC = () => {
 
     try {
       // 1. ΣΥΝΔΕΣΗ (Login)
-      // Χρησιμοποιούμε απευθείας το URL που ξέρουμε ότι δουλεύει
       const res = await axios.post("http://127.0.0.1:8000/api/login/", {
         username: username,
         password: password,
@@ -26,7 +25,6 @@ const Login: React.FC = () => {
       localStorage.setItem("refresh_token", res.data.refresh);
 
       // 3. ΕΛΕΓΧΟΣ ΠΡΟΦΙΛ (First Login Check)
-      // Το βάζουμε σε try/catch ώστε αν αποτύχει, να ΜΗΝ σταματήσει η σύνδεση
       try {
         const profileRes = await axios.get(
           "http://127.0.0.1:8000/api/profile/",
@@ -35,7 +33,6 @@ const Login: React.FC = () => {
           },
         );
 
-        // Αν είναι η πρώτη φορά -> Πάμε στο Προφίλ
         if (profileRes.data.first_login === true) {
           navigate("/profile");
           return;
@@ -45,20 +42,34 @@ const Login: React.FC = () => {
           "Το προφίλ δεν βρέθηκε ή υπήρξε σφάλμα. Συνεχίζουμε...",
           profileErr,
         );
-        // Δεν κάνουμε τίποτα, απλά προχωράμε στο Dashboard
       }
 
       // 4. ΤΕΛΙΚΟΣ ΠΡΟΟΡΙΣΜΟΣ -> Dashboard
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Σφάλμα Login:", err);
-      // Εμφάνιση μηνύματος μόνο αν αποτύχει το ίδιο το Login
       setError("Λάθος όνομα χρήστη ή κωδικός.");
     }
   };
 
   return (
-    <div style={styles.container}>
+    // Προσθέτουμε flex-direction: column στο container για να μπει το logo από πάνω
+    <div style={{ ...styles.container, flexDirection: "column" }}>
+      {/* ΤΟ ΝΕΟ ΛΟΓΟΤΥΠΟ (Ακριβώς όπως στο Navbar) */}
+      <h1
+        style={{
+          color: "#37b9a4",
+          fontSize: "3.5rem",
+          fontWeight: "900",
+          fontFamily: '"Nunito", sans-serif',
+          marginBottom: "30px",
+          textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+          userSelect: "none",
+        }}
+      >
+        &lt;&gt;MyPython&lt;/&gt;
+      </h1>
+
       <div style={styles.card}>
         <h2
           style={{ textAlign: "center", marginBottom: "20px", color: "#333" }}
@@ -137,7 +148,7 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     height: "100%",
-    minHeight: "80vh",
+    minHeight: "80vh", // Αλλάξαμε λίγο το ύψος για να φαίνεται σωστά κεντραρισμένο
     backgroundColor: "#f0f2f5",
   },
   card: {
@@ -159,7 +170,7 @@ const styles = {
   button: {
     width: "100%",
     padding: "12px",
-    backgroundColor: "#306998",
+    backgroundColor: "#3785b9",
     color: "white",
     border: "none",
     borderRadius: "4px",

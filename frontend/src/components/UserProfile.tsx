@@ -100,7 +100,7 @@ const UserProfile: React.FC = () => {
   if (loading) return <div style={styles.center}>Φόρτωση...</div>;
 
   return (
-    <div style={{ backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "#f4f6f8", minHeight: "92vh" }}>
       <Navbar />
 
       <div style={styles.pageContainer}>
