@@ -20,6 +20,12 @@ interface QuizResult {
   remedialLink?: string;
 }
 
+// Προσθήκη Interface για να διαβάζουμε τον χάρτη
+interface Concept {
+  id: number;
+  name: string;
+}
+
 const Quiz: React.FC = () => {
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,10 +38,13 @@ const Quiz: React.FC = () => {
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [showSummary, setShowSummary] = useState(false);
 
+  // ΝΕΟ STATE: Το ID του επόμενου μαθήματος
+  const [nextConceptId, setNextConceptId] = useState<number | null>(null);
+
   const conceptIdRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
-  // Ανάκτηση του ID από το LocalStorage (το βάζουμε εκεί όταν πατάμε στο Dashboard)
+  // Ανάκτηση του ID από το LocalStorage
   useEffect(() => {
     const storedId = localStorage.getItem("currentConceptId");
     if (storedId) {
@@ -50,14 +59,12 @@ const Quiz: React.FC = () => {
     setSelectedOption(null);
 
     try {
-      // Στέλνουμε το ID αν το έχουμε, για να πάρουμε ερώτηση για ΤΟ ΣΥΓΚΕΚΡΙΜΕΝΟ μάθημα
       const res = await quizAPI.getNextQuestion(conceptIdRef.current);
 
       if (res.data.message === "Course completed!" || !res.data.options) {
-        // Αν δεν είχαμε το ID πριν (π.χ. Adaptive mode), το παίρνουμε τώρα από το backend
         if (res.data.concept) {
           conceptIdRef.current = res.data.concept;
-          localStorage.setItem("currentConceptId", res.data.concept); // Το σώζουμε για το Restart
+          localStorage.setItem("currentConceptId", res.data.concept);
         }
 
         // Φορτώνουμε το ιστορικό
@@ -73,7 +80,6 @@ const Quiz: React.FC = () => {
       }
     } catch (err) {
       console.error("Error fetching question", err);
-      // navigate('/dashboard'); // Προσωρινά σχόλιο για debugging
     } finally {
       setLoading(false);
     }
@@ -89,8 +95,36 @@ const Quiz: React.FC = () => {
     }
   };
 
+  // --- ΝΕΟ USE EFFECT ---
+  // Μόλις εμφανιστεί η σύνοψη (showSummary), ψάχνουμε το επόμενο μάθημα
   useEffect(() => {
-    // Καλούμε το fetch μόλις φορτώσει το component
+    const findNextChapter = async () => {
+      if (showSummary && conceptIdRef.current) {
+        try {
+          // 1. Φέρνουμε όλα τα μαθήματα
+          const res = await quizAPI.getConceptMap();
+          const allConcepts: Concept[] = res.data;
+
+          // 2. Βρίσκουμε το τωρινό
+          const currentIndex = allConcepts.findIndex(
+            (c) => c.id === conceptIdRef.current,
+          );
+
+          // 3. Αν υπάρχει επόμενο, κρατάμε το ID του
+          if (currentIndex !== -1 && currentIndex < allConcepts.length - 1) {
+            setNextConceptId(allConcepts[currentIndex + 1].id);
+          } else {
+            setNextConceptId(null);
+          }
+        } catch (err) {
+          console.error("Failed to find next chapter", err);
+        }
+      }
+    };
+    findNextChapter();
+  }, [showSummary]);
+
+  useEffect(() => {
     fetchNextQuestion();
   }, []);
 
@@ -109,7 +143,6 @@ const Quiz: React.FC = () => {
         isCorrect,
       });
 
-      // Προσθέτουμε στο προσωρινό ιστορικό (για άμεση εμφάνιση)
       setQuizHistory((prev) => [
         ...prev,
         {
@@ -139,13 +172,21 @@ const Quiz: React.FC = () => {
         setQuizHistory([]);
         setShowSummary(false);
         setQuestion(null);
-
-        // Μικρή καθυστέρηση και ξανακαλούμε ερώτηση (τώρα θα είναι mastery=0)
         setTimeout(() => fetchNextQuestion(), 500);
       } catch (error) {
         alert("Σφάλμα επανεκκίνησης.");
         setLoading(false);
       }
+    }
+  };
+
+  // --- ΝΕΑ ΣΥΝΑΡΤΗΣΗ: Πηγαίνει στο επόμενο κεφάλαιο ---
+  const handleGoToNext = () => {
+    if (nextConceptId) {
+      // Αποθήκευση του νέου ID
+      localStorage.setItem("currentConceptId", nextConceptId.toString());
+      // Reload σελίδας για να ξεκινήσει φρέσκο το νέο μάθημα
+      navigate(0);
     }
   };
 
@@ -173,11 +214,18 @@ const Quiz: React.FC = () => {
     const correct = quizHistory.filter((r) => r.isCorrect).length;
     const score = total > 0 ? Math.round((correct / total) * 100) : 0;
 
+    // Έλεγχος αν πέρασε τη βάση (π.χ. 50%)
+    const passed = score >= 50;
+
     return (
       <div style={styles.container}>
         <div style={{ ...styles.card, maxWidth: "800px" }}>
           <h2 style={{ textAlign: "center", color: "#333" }}>
-            {total > 0 ? "🎉 Τέλος Ενότητας!" : "🏁 Ενότητα Ολοκληρωμένη"}
+            {total > 0
+              ? passed
+                ? "🎉 Συγχαρητήρια!"
+                : "😕 Χρειάζεται Επανάληψη"
+              : "🏁 Ενότητα Ολοκληρωμένη"}
           </h2>
 
           {total > 0 && (
@@ -186,11 +234,13 @@ const Quiz: React.FC = () => {
                 textAlign: "center",
                 margin: "20px 0",
                 padding: "20px",
-                backgroundColor: "#e3f2fd",
+                backgroundColor: passed ? "#e8f5e9" : "#ffebee", // Πράσινο αν πέρασε, κόκκινο αν κόπηκε
                 borderRadius: "10px",
               }}
             >
-              <h1 style={{ margin: 0, color: "#1976d2" }}>{score}%</h1>
+              <h1 style={{ margin: 0, color: passed ? "#2e7d32" : "#c62828" }}>
+                {score}%
+              </h1>
               <p>
                 Σωστά: {correct} / {total}
               </p>
@@ -230,9 +280,7 @@ const Quiz: React.FC = () => {
                       : `❌ Λάθος (Επέλεξες: ${result.userAnswer})`}
                   </div>
                   <div style={{ marginTop: "10px" }}>
-                    {result.isCorrect ? (
-                      " "
-                    ) : (
+                    {!result.isCorrect && (
                       <a
                         href={result.remedialLink}
                         target="_blank"
@@ -266,6 +314,7 @@ const Quiz: React.FC = () => {
               gap: "10px",
               marginTop: "30px",
               justifyContent: "center",
+              flexWrap: "wrap",
             }}
           >
             <button
@@ -278,6 +327,7 @@ const Quiz: React.FC = () => {
             >
               🏠 Dashboard
             </button>
+
             <button
               onClick={handleRestart}
               style={{
@@ -288,6 +338,20 @@ const Quiz: React.FC = () => {
             >
               🔄 Παίξε Ξανά
             </button>
+
+            {/* --- ΤΟ ΚΟΥΜΠΙ ΓΙΑ ΤΟ ΕΠΟΜΕΝΟ ΚΕΦΑΛΑΙΟ --- */}
+            {passed && nextConceptId && (
+              <button
+                onClick={handleGoToNext}
+                style={{
+                  ...styles.mainBtn,
+                  backgroundColor: "#4caf50",
+                  width: "auto",
+                }}
+              >
+                Επόμενο Κεφάλαιο ▶
+              </button>
+            )}
           </div>
         </div>
       </div>

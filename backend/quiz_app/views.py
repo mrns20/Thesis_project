@@ -8,6 +8,7 @@ import random
 from django.contrib.auth.models import User
 from .models import UserProfile
 from .serializers import UserProfileSerializer
+from .models import Concept, Question, StudentProgress # Σιγουρέψου ότι υπάρχουν αυτά
 
 # 1. Εγγραφή Χρήστη (Sign Up)
 @api_view(['POST'])
@@ -289,3 +290,52 @@ def get_concept_history(request, concept_id):
         })
     
     return Response(history_data)
+
+    # Στο τέλος του αρχείου backend/quiz_app/views.py
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def submit_quiz(request):
+    user = request.user
+    concept_id = request.data.get('concept_id')
+    score = request.data.get('score')
+
+    try:
+        # 1. Αποθήκευση του Σκορ
+        # Βρες την πρόοδο του μαθητή για αυτό το μάθημα
+        progress, created = StudentProgress.objects.get_or_create(
+            user=user, 
+            concept_id=concept_id
+        )
+        
+        # Κράτα το σκορ αν είναι καλύτερο από το προηγούμενο
+        if score > progress.mastery:
+            progress.mastery = score
+        progress.save()
+
+        # 2. Έλεγχος για Επόμενο Κεφάλαιο
+        next_concept_id = None
+        
+        # Αν πέρασε τη βάση (π.χ. 50%)
+        if score >= 50:
+            # Βρες το επόμενο μάθημα (αυτό που έχει ID μεγαλύτερο από το τρέχον)
+            # Χρησιμοποιούμε το 'id__gt' (greater than) και παίρνουμε το πρώτο
+            next_concept = Concept.objects.filter(id__gt=concept_id).order_by('id').first()
+            
+            if next_concept:
+                # Ξεκλείδωσέ το στη βάση
+                next_prog, _ = StudentProgress.objects.get_or_create(user=user, concept=next_concept)
+                next_prog.is_unlocked = True
+                next_prog.save()
+                
+                # Κράτα το ID του για να το στείλουμε στο Frontend
+                next_concept_id = next_concept.id
+
+        return Response({
+            'message': 'Quiz completed', 
+            'score': score,
+            'next_concept_id': next_concept_id 
+        }, status=200)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
