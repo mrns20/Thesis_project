@@ -370,3 +370,21 @@ def get_mistake_links(request):
         })
 
     return Response(links_data, status=200)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reset_global_progress(request):
+    user = request.user
+    
+    # 1. Διαγραφή Προόδου (Mastery) για όλα τα Concepts
+    StudentProgress.objects.filter(user=user).delete()
+    
+    # 2. Διαγραφή Λαθών (Για να αδειάσει το MistakesBook)
+    UserMistake.objects.filter(user=user).delete()
+    
+    # 3. Διαγραφή Ιστορικού Απαντήσεων (Αν το χρησιμοποιείς)
+    # (Αν δεν έχεις UserAnswerLog, μπορείς να σβήσεις αυτές τις 2 γραμμές)
+    if 'UserAnswerLog' in globals():
+        UserAnswerLog.objects.filter(user=user).delete()
+
+    return Response({'message': 'Όλα τα δεδομένα προόδου διαγράφηκαν επιτυχώς.'}, status=200)

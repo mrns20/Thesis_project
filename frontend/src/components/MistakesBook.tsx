@@ -30,21 +30,21 @@ const MistakesBook: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f0f2f5" }}>
+    <div style={{ minHeight: "80vh", backgroundColor: "#f0f2f5" }}>
       <Navbar />
       <div style={styles.container}>
         <div style={styles.headerRow}>
           <button onClick={() => navigate("/dashboard")} style={styles.backBtn}>
-            ⬅ Πίσω
+            ⬅
           </button>
-          <h1 style={{ margin: 0, color: "#333" }}>📖 Τα Λάθη μου</h1>
+          <h1 style={{ margin: 0, color: "#333" }}>Mονοπάτι μάθησης</h1>
         </div>
 
         {loading ? (
           <p style={{ textAlign: "center" }}>Φόρτωση...</p>
         ) : links.length === 0 ? (
           <div style={styles.emptyState}>
-            <h2>🎉 Κανένα λάθος!</h2>
+            <h2> Κανένα λάθος!</h2>
             <p>Δεν υπάρχουν καταγεγραμμένα λάθη ακόμα.</p>
           </div>
         ) : (

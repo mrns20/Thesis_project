@@ -42,6 +42,30 @@ const Dashboard: React.FC = () => {
     navigate("/quiz");
   };
 
+  const handleGlobalReset = async () => {
+    // Επιβεβαίωση για να μην το πατήσει κατά λάθος
+    if (
+      window.confirm(
+        "⚠️ ΠΡΟΣΟΧΗ: Είσαι σίγουρος;\n\nΑυτό θα διαγράψει ΟΛΗ την πρόοδό σου, το Mastery και τα Λάθη από το τετράδιο.\n\nΗ ενέργεια δεν αναιρείται.",
+      )
+    ) {
+      try {
+        await quizAPI.resetGlobalProgress();
+        // Καθαρισμός local storage
+        localStorage.removeItem("currentConceptId");
+        localStorage.removeItem("isGeneralPractice");
+
+        // alert("Η πρόοδος διαγράφηκε επιτυχώς! Ξεκινάμε από την αρχή.");
+
+        // Reload τη σελίδα για να καθαρίσει ο χάρτης
+        window.location.reload();
+      } catch (err) {
+        console.error("Reset failed", err);
+        alert("Σφάλμα κατά την επαναφορά.");
+      }
+    }
+  };
+
   return (
     <>
       {/* Το Νέο Navigation Bar */}
@@ -52,7 +76,7 @@ const Dashboard: React.FC = () => {
         <h1
           style={{ textAlign: "center", marginBottom: "40px", color: "#333" }}
         >
-          🗺️ Ο Χάρτης της Python
+          Ο Χάρτης με τα κεφάλαια της Python
         </h1>
 
         {/* --- GRID ΜΕ ΚΑΡΤΕΣ --- */}
@@ -116,8 +140,15 @@ const Dashboard: React.FC = () => {
 
         <div style={{ marginTop: "50px", textAlign: "center" }}>
           {/* Αυτό το κουμπί τώρα πάει στο γενικό quiz, ή μπορείς να το βγάλεις αν θες */}
-          <button onClick={() => navigate("/quiz")} style={styles.bigButton}>
-            🚀 Γενική Εξάσκηση
+          <button
+            onClick={() => navigate("/quiz")}
+            style={{
+              ...styles.bigButton,
+              fontWeight: "bold",
+              fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
+            }}
+          >
+            Ξεκίνα το Quiz!
           </button>
           <button
             onClick={() => navigate("/mistakes")}
@@ -125,10 +156,25 @@ const Dashboard: React.FC = () => {
               ...styles.bigButton,
               flex: 1,
               backgroundColor: "#ff9800", // Πορτοκαλί για να ξεχωρίζει
-              background: "linear-gradient(45deg, #ff9800 30%, #f57c00 90%)",
+              background: "linear-gradient(45deg, #006ba8 30%, #f55a00 90%)",
+              fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
+              fontWeight: "bold",
             }}
           >
-            📖 Τα Λάθη μου
+            Μονοπάτι μάθησης
+          </button>
+          <button
+            onClick={handleGlobalReset}
+            style={{
+              ...styles.bigButton,
+              flex: 1,
+              backgroundColor: "#ff0800", // Πορτοκαλί για να ξεχωρίζει
+              background: "linear-gradient(45deg, #ff1e00 30%, #cc0e00 90%)",
+              fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
+              fontWeight: "bold",
+            }}
+          >
+            Επαναφορά Προόδου
           </button>
         </div>
       </div>

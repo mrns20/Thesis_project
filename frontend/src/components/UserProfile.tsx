@@ -124,7 +124,7 @@ const UserProfile: React.FC = () => {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     style={styles.input}
-                    placeholder="π.χ. Γιάννης"
+                    placeholder="π.χ. Μαρίνος"
                   />
                 </div>
                 <div style={styles.inputGroup}>
@@ -134,7 +134,7 @@ const UserProfile: React.FC = () => {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     style={styles.input}
-                    placeholder="π.χ. Παπαδόπουλος"
+                    placeholder="π.χ. Τσελάνι"
                   />
                 </div>
               </div>
@@ -146,7 +146,7 @@ const UserProfile: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={styles.input}
-                  placeholder="user@example.com"
+                  placeholder="marino@example.com"
                 />
               </div>
 
@@ -156,7 +156,7 @@ const UserProfile: React.FC = () => {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   style={{ ...styles.input, height: "80px", resize: "none" }}
-                  placeholder="Λίγα λόγια για την εμπειρία σας..."
+                  placeholder="Bio..."
                 />
               </div>
 
@@ -171,12 +171,8 @@ const UserProfile: React.FC = () => {
                   onChange={(e) => setLearningStyle(e.target.value)}
                   style={styles.select}
                 >
-                  <option value="visual">
-                    🎨 Οπτικά (Εικόνες & Διαγράμματα)
-                  </option>
-                  <option value="read_write">
-                    📖 Κείμενο (Ανάγνωση & Γραφή Κώδικα)
-                  </option>
+                  <option value="visual">Οπτικά</option>
+                  <option value="read_write">Mε Κείμενο ανάγνωσης</option>
                 </select>
                 <small
                   style={{
@@ -200,7 +196,7 @@ const UserProfile: React.FC = () => {
           {/* ΔΕΞΙΑ ΣΤΗΛΗ: Widgets */}
           <div style={styles.rightColumn}>
             <div style={{ ...styles.card, marginBottom: "20px" }}>
-              <h3 style={styles.cardTitle}>Ανάλυση Δεξιοτήτων 🕸️</h3>
+              <h3 style={styles.cardTitle}>Ιστός Δεξιοτήτων </h3>
               <div style={{ width: "100%", height: 250 }}>
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
