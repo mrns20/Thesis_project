@@ -325,18 +325,7 @@ const Quiz: React.FC = () => {
                 width: "auto",
               }}
             >
-              🏠 Dashboard
-            </button>
-
-            <button
-              onClick={handleRestart}
-              style={{
-                ...styles.mainBtn,
-                backgroundColor: "#ff9800",
-                width: "auto",
-              }}
-            >
-              🔄 Παίξε Ξανά
+              Dashboard
             </button>
 
             {/* --- ΤΟ ΚΟΥΜΠΙ ΓΙΑ ΤΟ ΕΠΟΜΕΝΟ ΚΕΦΑΛΑΙΟ --- */}
