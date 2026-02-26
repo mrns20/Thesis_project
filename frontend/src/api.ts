@@ -45,6 +45,7 @@ export const authAPI = {
 
 export const quizAPI = {
   getConceptMap: () => api.get("/concept-map/"),
+  getMistakeLinks: () => api.get("/mistakes/links/"),
 
   // Πλέον δέχεται προαιρετικά ένα conceptId
   getNextQuestion: (conceptId?: number | null) => {

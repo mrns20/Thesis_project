@@ -1,3 +1,5 @@
+
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -9,6 +11,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile
 from .serializers import UserProfileSerializer
 from .models import Concept, Question, StudentProgress # Σιγουρέψου ότι υπάρχουν αυτά
+from .models import UserMistake,UserAnswerLog
 
 # 1. Εγγραφή Χρήστη (Sign Up)
 @api_view(['POST'])
@@ -145,6 +148,9 @@ def submit_answer(request):
     
     # 2. Έλεγχος αν είναι σωστό
     is_correct = (selected_option == question.correct_option)
+    if not is_correct:
+        UserMistake.objects.get_or_create(user=user, question=question)
+
     
     # 3. Επεξήγηση (Αν υπάρχει στη βάση, αλλιώς default κείμενο)
     explanation = question.explanation 
@@ -339,3 +345,28 @@ def submit_quiz(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_mistake_links(request):
+    user = request.user
+    mistakes = UserMistake.objects.filter(user=user).select_related('question')
+    
+    links_data = []
+    for m in mistakes:
+        # 1. Αρχικοποιούμε το link να είναι κενό
+        link = ""
+        
+        # 2. Αν υπάρχει link στην ερώτηση, το βάζουμε
+        # Χρησιμοποιούμε getattr για ασφάλεια σε περίπτωση που λείπει το πεδίο
+        resource = getattr(m.question, 'remedial_resource', None)
+        if resource:
+            link = resource
+        
+        # 3. Προσθήκη στη λίστα
+        links_data.append({
+            'question': m.question.text,  # <--- ΤΟ ΟΝΟΜΑΣΑ 'question' ΓΙΑ ΝΑ ΤΑΙΡΙΑΖΕΙ
+            'link': link
+        })
+
+    return Response(links_data, status=200)

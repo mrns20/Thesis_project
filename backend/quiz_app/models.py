@@ -33,6 +33,8 @@ class Question(models.Model):
     concept = models.ForeignKey(Concept, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField(help_text="Η εκφώνηση της ερώτησης")
     code_snippet = models.TextField(blank=True, null=True, help_text="Κώδικας Python (αν υπάρχει)")
+
+    remedial_resource = models.URLField(blank=True, null=True, help_text="Link θεωρίας για διάβασμα")
     
     # ΝΕΟ: Επεξήγηση (Εμφανίζεται μετά την απάντηση)
     explanation = models.TextField(blank=True, null=True, help_text="Εμφανίζεται στον χρήστη μετά την απάντηση (π.χ. γιατί είναι σωστό/λάθος)")
@@ -109,3 +111,15 @@ def save_user_profile(sender, instance, **kwargs):
     # Ελέγχουμε αν υπάρχει το profile πριν το σώσουμε (για αποφυγή λαθών)
     if hasattr(instance, 'userprofile'):
         instance.userprofile.save()
+
+
+# backend/quiz_app/models.py
+
+# Πρόσθεσε αυτό στο τέλος του models.py
+class UserMistake(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'question') # Για να μην αποθηκεύεται το ίδιο λάθος 100 φορές

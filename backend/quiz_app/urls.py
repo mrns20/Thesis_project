@@ -15,5 +15,6 @@ urlpatterns = [
     # profile
     path('profile/', views.user_profile, name='user_profile'),
     path('concept/<int:concept_id>/history/', views.get_concept_history, name='concept_history'),
+    path('mistakes/links/', views.get_mistake_links, name='get_mistake_links'),
     path('concept/restart/', views.restart_concept, name='restart_concept')
 ]

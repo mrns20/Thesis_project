@@ -119,6 +119,17 @@ const Dashboard: React.FC = () => {
           <button onClick={() => navigate("/quiz")} style={styles.bigButton}>
             🚀 Γενική Εξάσκηση
           </button>
+          <button
+            onClick={() => navigate("/mistakes")}
+            style={{
+              ...styles.bigButton,
+              flex: 1,
+              backgroundColor: "#ff9800", // Πορτοκαλί για να ξεχωρίζει
+              background: "linear-gradient(45deg, #ff9800 30%, #f57c00 90%)",
+            }}
+          >
+            📖 Τα Λάθη μου
+          </button>
         </div>
       </div>
     </>
