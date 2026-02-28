@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { quizAPI } from "../api";
 import Navbar from "./Navbar";
 
-// Το Interface πρέπει να ταιριάζει ΑΚΡΙΒΩΣ με αυτό που στέλνει το Backend
 interface MistakeLink {
-  question: string; // Αυτό πρέπει να είναι 'question' όπως στο views.py
+  question: string;
   link: string;
+  video_link: string; // Προσθήκη του νέου πεδίου
+  learning_style: string; // Προσθήκη του τύπου μάθησης
 }
 
 const MistakesBook: React.FC = () => {
@@ -18,7 +19,6 @@ const MistakesBook: React.FC = () => {
     const fetchLinks = async () => {
       try {
         const res = await quizAPI.getMistakeLinks();
-        console.log("Mistakes Data:", res.data); // Δες την κονσόλα (F12) για να σιγουρευτείς
         setLinks(res.data);
       } catch (err) {
         console.error("Error fetching links", err);
@@ -49,39 +49,64 @@ const MistakesBook: React.FC = () => {
           </div>
         ) : (
           <div style={styles.listContainer}>
-            {links.map((item, index) => (
-              <div key={index} style={styles.card}>
-                <div style={styles.questionText}>
-                  {/* Εδώ εμφανίζεται η ερώτηση. Αν είναι κενό, θα γράψει "Άγνωστη ερώτηση" */}
-                  <span
-                    style={{
-                      color: "#d32f2f",
-                      fontWeight: "bold",
-                      marginRight: "10px",
-                    }}
-                  >
-                    ❌
-                  </span>
-                  {item.question || "Άγνωστη ερώτηση (Δεν βρέθηκε κείμενο)"}
-                </div>
+            {links.map((item, index) => {
+              // Λογική για το ποιο link θα δείξουμε:
+              const isVisual = item.learning_style === "visual"; // ή όποια λέξη έχεις για το "Οπτικά"
+              const hasVideo = !!item.video_link;
+              const hasText = !!item.link;
 
-                {/* Εμφάνιση Link μόνο αν υπάρχει */}
-                {item.link ? (
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.linkButton}
+              return (
+                <div key={index} style={styles.card}>
+                  <div style={styles.questionText}>
+                    <span
+                      style={{
+                        color: "#d32f2f",
+                        fontWeight: "bold",
+                        marginRight: "10px",
+                      }}
+                    >
+                      ❌
+                    </span>
+                    {item.question || "Άγνωστη ερώτηση"}
+                  </div>
+
+                  <div
+                    style={{ display: "flex", gap: "10px", marginTop: "10px" }}
                   >
-                    📖 Διάβασε τη Θεωρία
-                  </a>
-                ) : (
-                  <span style={styles.noLinkText}>
-                    (Δεν υπάρχει link θεωρίας για αυτή την ερώτηση)
-                  </span>
-                )}
-              </div>
-            ))}
+                    {/* Αν είναι Οπτικός τύπος και υπάρχει βίντεο */}
+                    {isVisual && hasVideo ? (
+                      <a
+                        href={item.video_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={styles.videoLinkButton}
+                      >
+                        ▶️ Δες το Βίντεο
+                      </a>
+                    ) : null}
+
+                    {/* Αν ΔΕΝ είναι Οπτικός τύπος, Ή αν είναι αλλά δεν βρήκαμε βίντεο, δείξε το κείμενο */}
+                    {(!isVisual || !hasVideo) && hasText ? (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={styles.linkButton}
+                      >
+                        📖 Διάβασε τη Θεωρία
+                      </a>
+                    ) : null}
+
+                    {/* Αν δεν υπάρχει ούτε κείμενο ούτε βίντεο */}
+                    {!hasText && (!isVisual || !hasVideo) ? (
+                      <span style={styles.noLinkText}>
+                        (Δεν υπάρχει διαθέσιμο υλικό)
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -113,7 +138,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
     display: "flex",
     flexDirection: "column",
-    gap: "15px",
+    gap: "10px",
   },
   questionText: {
     fontSize: "1.1rem",
@@ -133,6 +158,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #bbdefb",
     transition: "all 0.2s",
   },
+
+  // Νέο style για το κουμπί του βίντεο (έβαλα ένα κοκκινωπό στυλ τύπου YouTube)
+  videoLinkButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ffebee",
+    color: "#c62828",
+    padding: "10px 15px",
+    borderRadius: "8px",
+    textDecoration: "none",
+    fontWeight: "bold",
+    fontSize: "0.9rem",
+    border: "1px solid #ffcdd2",
+    transition: "all 0.2s",
+  },
+
   noLinkText: {
     fontSize: "0.85rem",
     color: "#999",

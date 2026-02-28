@@ -352,21 +352,23 @@ def get_mistake_links(request):
     user = request.user
     mistakes = UserMistake.objects.filter(user=user).select_related('question')
     
+    # Βρίσκουμε τον τύπο μάθησης του χρήστη
+    try:
+        user_profile = UserProfile.objects.get(user=user)
+        learning_style = user_profile.learning_style
+    except UserProfile.DoesNotExist:
+        learning_style = 'visual' # Ή όποιο είναι το default σου
+
     links_data = []
     for m in mistakes:
-        # 1. Αρχικοποιούμε το link να είναι κενό
-        link = ""
-        
-        # 2. Αν υπάρχει link στην ερώτηση, το βάζουμε
-        # Χρησιμοποιούμε getattr για ασφάλεια σε περίπτωση που λείπει το πεδίο
-        resource = getattr(m.question, 'remedial_resource', None)
-        if resource:
-            link = resource
-        
-        # 3. Προσθήκη στη λίστα
+        link = getattr(m.question, 'remedial_resource', "") or ""
+        video_link = getattr(m.question, 'video_resource', "") or "" # Παίρνουμε το νέο πεδίο
+
         links_data.append({
-            'question': m.question.text,  # <--- ΤΟ ΟΝΟΜΑΣΑ 'question' ΓΙΑ ΝΑ ΤΑΙΡΙΑΖΕΙ
-            'link': link
+            'question': m.question.text,
+            'link': link,             # Το παλιό link κειμένου
+            'video_link': video_link, # Το νέο link για βίντεο
+            'learning_style': learning_style # Στέλνουμε και το στυλ του χρήστη
         })
 
     return Response(links_data, status=200)

@@ -35,6 +35,7 @@ class Question(models.Model):
     code_snippet = models.TextField(blank=True, null=True, help_text="Κώδικας Python (αν υπάρχει)")
 
     remedial_resource = models.URLField(blank=True, null=True, help_text="Link θεωρίας για διάβασμα")
+    video_resource = models.URLField(blank=True, null=True, help_text="Link για βίντεο αν ο χρήστης είναι οπτικός τύπος")
     
     # ΝΕΟ: Επεξήγηση (Εμφανίζεται μετά την απάντηση)
     explanation = models.TextField(blank=True, null=True, help_text="Εμφανίζεται στον χρήστη μετά την απάντηση (π.χ. γιατί είναι σωστό/λάθος)")
