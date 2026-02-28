@@ -49,13 +49,11 @@ const Register: React.FC = () => {
       </h1>
 
       <div style={styles.card}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-          📝 Εγγραφή
-        </h2>
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Εγγραφή</h2>
 
         {success ? (
           <div style={styles.success}>
-            ✅ Ο λογαριασμός δημιουργήθηκε! <br /> Μεταφορά στη σύνδεση...
+            Ο λογαριασμός δημιουργήθηκε! <br /> Μεταφορά στη σύνδεση...
           </div>
         ) : (
           <form onSubmit={handleRegister}>

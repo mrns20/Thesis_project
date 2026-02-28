@@ -44,7 +44,7 @@ const MistakesBook: React.FC = () => {
           <p style={{ textAlign: "center" }}>Φόρτωση...</p>
         ) : links.length === 0 ? (
           <div style={styles.emptyState}>
-            <h2> Κανένα λάθος!</h2>
+            <h2> Το μονοπάτι μάθησης είναι άδειο!</h2>
             <p>Δεν υπάρχουν καταγεγραμμένα λάθη ακόμα.</p>
           </div>
         ) : (

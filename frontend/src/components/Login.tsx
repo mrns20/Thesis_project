@@ -74,7 +74,7 @@ const Login: React.FC = () => {
         <h2
           style={{ textAlign: "center", marginBottom: "20px", color: "#333" }}
         >
-          🔐 Σύνδεση
+          Σύνδεση
         </h2>
 
         {error && <div style={styles.error}>{error}</div>}
