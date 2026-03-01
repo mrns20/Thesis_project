@@ -137,9 +137,7 @@ const Quiz: React.FC = () => {
       const explanation = res.data.explanation || "";
 
       setFeedback({
-        msg: isCorrect
-          ? "✅ Σωστά! " + explanation
-          : "❌ Λάθος. " + explanation,
+        msg: isCorrect ? " Σωστά! " + explanation : " Λάθος. " + explanation,
         isCorrect,
       });
 
@@ -247,7 +245,7 @@ const Quiz: React.FC = () => {
             </div>
           )}
 
-          <h3>📜 Ιστορικό:</h3>
+          <h3> Ιστορικό:</h3>
           <div
             style={{
               display: "flex",
@@ -276,8 +274,8 @@ const Quiz: React.FC = () => {
                     style={{ color: result.isCorrect ? "#2e7d32" : "#c62828" }}
                   >
                     {result.isCorrect
-                      ? "✅ Σωστό"
-                      : `❌ Λάθος (Επέλεξες: ${result.userAnswer})`}
+                      ? " Σωστό"
+                      : ` Λάθος (Επέλεξες: ${result.userAnswer})`}
                   </div>
                   <div style={{ marginTop: "10px" }}>
                     {!result.isCorrect && (
@@ -347,7 +345,7 @@ const Quiz: React.FC = () => {
     );
   }
 
-  if (loading) return <div style={styles.center}>🔄 Φόρτωση...</div>;
+  if (loading) return <div style={styles.center}> Φόρτωση...</div>;
   if (!question) return <div style={styles.center}>...</div>;
 
   return (
@@ -429,7 +427,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "center",
     alignItems: "center",
     minHeight: "100vh",
-    backgroundColor: "#f4f6f8",
+    backgroundColor: "#292929",
     padding: "20px",
   },
   card: {

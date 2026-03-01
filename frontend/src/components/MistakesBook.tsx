@@ -6,12 +6,18 @@ import Navbar from "./Navbar";
 interface MistakeLink {
   question: string;
   link: string;
-  video_link: string; // Προσθήκη του νέου πεδίου
-  learning_style: string; // Προσθήκη του τύπου μάθησης
+  video_link: string;
+  learning_style: string;
+}
+
+interface EvaluationData {
+  score: number;
+  message: string;
 }
 
 const MistakesBook: React.FC = () => {
   const [links, setLinks] = useState<MistakeLink[]>([]);
+  const [evaluation, setEvaluation] = useState<EvaluationData | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -19,7 +25,9 @@ const MistakesBook: React.FC = () => {
     const fetchLinks = async () => {
       try {
         const res = await quizAPI.getMistakeLinks();
-        setLinks(res.data);
+        // Ενημέρωση των States με τη νέα δομή δεδομένων
+        setLinks(res.data.links);
+        setEvaluation(res.data.evaluation);
       } catch (err) {
         console.error("Error fetching links", err);
       } finally {
@@ -28,6 +36,13 @@ const MistakesBook: React.FC = () => {
     };
     fetchLinks();
   }, []);
+
+  // Βοηθητική συνάρτηση για το χρώμα της μπάρας σκορ
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "#4caf50"; // Πράσινο
+    if (score >= 50) return "#ff9800"; // Πορτοκαλί
+    return "#f44336"; // Κόκκινο
+  };
 
   return (
     <div style={{ minHeight: "80vh", backgroundColor: "#f0f2f5" }}>
@@ -40,82 +55,134 @@ const MistakesBook: React.FC = () => {
           <h1 style={{ margin: 0, color: "#333" }}>Mονοπάτι μάθησης</h1>
         </div>
 
-        {loading ? (
-          <p style={{ textAlign: "center" }}>Φόρτωση...</p>
-        ) : links.length === 0 ? (
-          <div style={styles.emptyState}>
-            <h2> Το μονοπάτι μάθησης είναι άδειο!</h2>
-            <p>Δεν υπάρχουν καταγεγραμμένα λάθη ακόμα.</p>
+        <div style={styles.contentWrapper}>
+          {/* ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ: Λίστα Λαθών */}
+          <div style={styles.listColumn}>
+            {loading ? (
+              <p style={{ textAlign: "center" }}>Φόρτωση...</p>
+            ) : links.length === 0 ? (
+              <div style={styles.emptyState}>
+                <h2>Το μονοπάτι μάθησης είναι άδειο!</h2>
+                <p>
+                  Δεν υπάρχουν καταγεγραμμένα λάθη ακόμα. Συνέχισε την καλή
+                  δουλειά!
+                </p>
+              </div>
+            ) : (
+              <div style={styles.listContainer}>
+                {links.map((item, index) => {
+                  const isVisual = item.learning_style === "visual";
+                  const hasVideo = !!item.video_link;
+                  const hasText = !!item.link;
+
+                  return (
+                    <div key={index} style={styles.card}>
+                      <div style={styles.questionText}>
+                        <span
+                          style={{
+                            color: "#ffffff",
+                            fontWeight: "bold",
+                            marginRight: "10px",
+                          }}
+                        >
+                          {index + 1}.
+                        </span>
+                        {item.question || "Άγνωστη ερώτηση"}
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          marginTop: "10px",
+                        }}
+                      >
+                        {isVisual && hasVideo ? (
+                          <a
+                            href={item.video_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={styles.videoLinkButton}
+                          >
+                            Δες το Βίντεο
+                          </a>
+                        ) : null}
+
+                        {(!isVisual || !hasVideo) && hasText ? (
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={styles.linkButton}
+                          >
+                            Διάβασε τη Θεωρία
+                          </a>
+                        ) : null}
+
+                        {!hasText && (!isVisual || !hasVideo) ? (
+                          <span style={styles.noLinkText}>
+                            (Δεν υπάρχει διαθέσιμο υλικό)
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        ) : (
-          <div style={styles.listContainer}>
-            {links.map((item, index) => {
-              // Λογική για το ποιο link θα δείξουμε:
-              const isVisual = item.learning_style === "visual"; // ή όποια λέξη έχεις για το "Οπτικά"
-              const hasVideo = !!item.video_link;
-              const hasText = !!item.link;
 
-              return (
-                <div key={index} style={styles.card}>
-                  <div style={styles.questionText}>
-                    <span
-                      style={{
-                        color: "#ffffff",
-                        fontWeight: "bold",
-                        marginRight: "10px",
-                      }}
-                    >
-                      {index + 1}.
-                    </span>
-                    {item.question || "Άγνωστη ερώτηση"}
-                  </div>
+          {/* ΔΕΞΙΑ ΣΤΗΛΗ: Πλαίσιο Αξιολόγησης */}
+          {!loading && evaluation && (
+            <div style={styles.evalColumn}>
+              <div style={styles.evalCard}>
+                <h3 style={{ margin: "0 0 10px 0", color: "#333" }}>
+                  Αξιολόγηση Επιπέδου Γνώσεων
+                </h3>
+                <p
+                  style={{
+                    margin: "0 0 15px 0",
+                    fontSize: "0.95rem",
+                    color: "#555",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  {evaluation.message}
+                </p>
 
+                {/* Μπάρα Προόδου */}
+                <div style={styles.progressBarContainer}>
                   <div
-                    style={{ display: "flex", gap: "10px", marginTop: "10px" }}
-                  >
-                    {/* Αν είναι Οπτικός τύπος και υπάρχει βίντεο */}
-                    {isVisual && hasVideo ? (
-                      <a
-                        href={item.video_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.videoLinkButton}
-                      >
-                        Δες το Βίντεο
-                      </a>
-                    ) : null}
-
-                    {/* Αν ΔΕΝ είναι Οπτικός τύπος, Ή αν είναι αλλά δεν βρήκαμε βίντεο, δείξε το κείμενο */}
-                    {(!isVisual || !hasVideo) && hasText ? (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.linkButton}
-                      >
-                        Διάβασε τη Θεωρία
-                      </a>
-                    ) : null}
-
-                    {/* Αν δεν υπάρχει ούτε κείμενο ούτε βίντεο */}
-                    {!hasText && (!isVisual || !hasVideo) ? (
-                      <span style={styles.noLinkText}>
-                        (Δεν υπάρχει διαθέσιμο υλικό)
-                      </span>
-                    ) : null}
-                  </div>
+                    style={{
+                      ...styles.progressBarFill,
+                      width: `${evaluation.score}%`,
+                      backgroundColor: getScoreColor(evaluation.score),
+                    }}
+                  />
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <div
+                  style={{
+                    textAlign: "right",
+                    fontSize: "0.85rem",
+                    color: "#666",
+                    marginTop: "5px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Σκορ: {evaluation.score}%
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: { maxWidth: "800px", margin: "0 auto", padding: "40px 20px" },
+  // Αυξήσαμε το maxWidth από 800px σε 1100px για να χωράνε 2 στήλες
+  container: { maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" },
   headerRow: {
     display: "flex",
     alignItems: "center",
@@ -130,6 +197,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     fontWeight: "bold",
   },
+
+  // Διάταξη Flexbox για τις 2 στήλες
+  contentWrapper: {
+    display: "flex",
+    gap: "40px",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+  },
+
+  // Αριστερή Στήλη (Λάθη) - Παίρνει το διπλάσιο χώρο (flex: 2)
+  listColumn: { flex: "2 1 600px" },
+
+  // Δεξιά Στήλη (Αξιολόγηση) - Παίρνει λιγότερο χώρο (flex: 1) και παραμένει sticky
+  evalColumn: { flex: "1 1 300px", top: "20px" },
+
+  evalCard: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+  },
+  progressBarContainer: {
+    height: "10px",
+    width: "100%",
+    backgroundColor: "#e0e0e0",
+    borderRadius: "5px",
+    overflow: "hidden",
+  },
+  progressBarFill: { height: "100%", transition: "width 0.5s ease-in-out" },
+
   listContainer: { display: "flex", flexDirection: "column", gap: "15px" },
   card: {
     backgroundColor: "white",
@@ -149,7 +246,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   linkButton: {
     alignSelf: "flex-start",
     backgroundColor: "#e3f2fd",
-    color: "#1565c0",
     padding: "10px 15px",
     borderRadius: "8px",
     textDecoration: "none",
@@ -158,8 +254,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #bbdefb",
     transition: "all 0.2s",
   },
-
-  // Νέο style για το κουμπί του βίντεο (έβαλα ένα κοκκινωπό στυλ τύπου YouTube)
   videoLinkButton: {
     alignSelf: "flex-start",
     backgroundColor: "#ffebee",
@@ -172,7 +266,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #ffcdd2",
     transition: "all 0.2s",
   },
-
   noLinkText: {
     fontSize: "0.85rem",
     color: "#999",

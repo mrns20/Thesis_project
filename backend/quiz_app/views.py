@@ -352,26 +352,73 @@ def get_mistake_links(request):
     user = request.user
     mistakes = UserMistake.objects.filter(user=user).select_related('question')
     
-    # Βρίσκουμε τον τύπο μάθησης του χρήστη
+    # 1. Βρίσκουμε τον τύπο μάθησης (Οπτικός/Κειμενικός)
     try:
         user_profile = UserProfile.objects.get(user=user)
         learning_style = user_profile.learning_style
     except UserProfile.DoesNotExist:
-        learning_style = 'visual' # Ή όποιο είναι το default σου
+        learning_style = 'visual'
 
+    # 2. Φτιάχνουμε τη λίστα με τα links
     links_data = []
     for m in mistakes:
         link = getattr(m.question, 'remedial_resource', "") or ""
-        video_link = getattr(m.question, 'video_resource', "") or "" # Παίρνουμε το νέο πεδίο
-
+        video_link = getattr(m.question, 'video_resource', "") or ""
+        
         links_data.append({
             'question': m.question.text,
-            'link': link,             # Το παλιό link κειμένου
-            'video_link': video_link, # Το νέο link για βίντεο
-            'learning_style': learning_style # Στέλνουμε και το στυλ του χρήστη
+            'link': link,
+            'video_link': video_link,
+            'learning_style': learning_style
         })
 
-    return Response(links_data, status=200)
+    # 3. --- ΝΕΟ: ΑΛΓΟΡΙΘΜΟΣ ΑΞΙΟΛΟΓΗΣΗΣ ---
+    
+    # Πόσες ΜΟΝΑΔΙΚΕΣ ερωτήσεις έχει απαντήσει (σωστά ή λάθος)
+    total_unique_answered = UserAnswerLog.objects.filter(user=user).values('question').distinct().count()
+    
+    evaluation = {
+        "score": 0,
+        "message": "Δεν υπάρχουν αρκετά δεδομένα για αξιολόγηση. Λύσε μερικά quiz ακόμα!"
+    }
+
+    if total_unique_answered > 0:
+        penalty = 0.0
+        
+        # Υπολογισμός "Ποινής" με βάση τη δυσκολία
+        for m in mistakes:
+            diff = m.question.difficulty
+            if diff == 'easy':
+                penalty += 1.5   # Μεγάλη ποινή στα εύκολα
+            elif diff == 'medium':
+                penalty += 1.0   # Κανονική ποινή στα μεσαία
+            elif diff == 'hard':
+                penalty += 0.5   # Μικρή ποινή στα δύσκολα
+            else:
+                penalty += 1.0
+
+        # Υπολογισμός Σκορ (0 - 100)
+        raw_score = 100.0 - ((penalty / total_unique_answered) * 100.0)
+        final_score = max(0.0, min(100.0, raw_score)) # Κρατάμε το σκορ ανάμεσα σε 0 και 100
+        
+        # Δημιουργία Μηνύματος Ανατροφοδότησης
+        if final_score >= 80:
+            msg = " Άριστο επίπεδο! Τα λάθη σου είναι ελάχιστα ή αφορούν κυρίως πολύ δύσκολες ερωτήσεις."
+        elif final_score >= 50:
+            msg = " Σε καλό δρόμο! Έχεις κατανοήσει τα βασικά, αλλά χρειάζεται λίγη επανάληψη στις μεσαίες δυσκολίες."
+        else:
+            msg = " Χρειάζεται προσοχή. Έχεις αρκετά κενά, ίσως και σε βασικές έννοιες."
+
+        evaluation = {
+            "score": round(final_score),
+            "message": msg
+        }
+
+    # Επιστρέφουμε πλέον ένα Object και όχι απλή λίστα
+    return Response({
+        "links": links_data,
+        "evaluation": evaluation
+    }, status=200)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
