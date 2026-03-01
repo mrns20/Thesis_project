@@ -17,6 +17,7 @@ venv\Scripts\activate
 ΓΙΑ macOS KAI LINUX :
 
 python3 -m venv venv
+
 source venv/bin/activate
 
 3. Εγκατάσταση εξαρτήσεων,
@@ -26,6 +27,7 @@ pip install -r requirements.txt
 4. Migrations, τρέξιμο του σερβερ,
 
 python manage.py migrate
+
 python manage.py runserver
 
 ### 2. Frontend
@@ -35,7 +37,9 @@ python manage.py runserver
 1.  Μεταβένουμε στον κατάλογο του frontend, κατεβάζουμε τα απαραίτητα πακέτα και εκκινούμε την εφαρμογή
 
 cd frontend
+
 npm install
+
 npm start
 
 ---
