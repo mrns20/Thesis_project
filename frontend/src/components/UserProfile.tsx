@@ -239,7 +239,7 @@ const UserProfile: React.FC = () => {
             </div>
 
             <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Ημερολόγιο Δραστηριότητας</h3>
+              <h3 style={styles.cardTitle}>Ημερολόγιο </h3>
               <div style={styles.calendarHeader}>
                 <strong>
                   {currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1)}{" "}
