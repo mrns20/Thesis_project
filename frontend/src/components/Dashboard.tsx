@@ -27,11 +27,6 @@ const Dashboard: React.FC = () => {
     fetchMap();
   }, []);
 
-  const handleLogout = () => {
-    authAPI.logout();
-    navigate("/");
-  };
-
   // --- Η ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΠΟΥ ZHTΗΣΕΣ ---
   // Αποθηκεύει ποιο μάθημα διάλεξες και σε πάει στο Quiz
   const handleStartQuiz = (conceptId: number) => {
