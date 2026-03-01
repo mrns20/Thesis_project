@@ -5,6 +5,7 @@
 ### 1. Backend
 
 1.Μεταβείτε στον κατάλογο του backend:
+
 cd backend
 
 2.Virtual Environment,
