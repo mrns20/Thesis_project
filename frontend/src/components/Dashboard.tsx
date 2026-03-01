@@ -156,7 +156,7 @@ const Dashboard: React.FC = () => {
               ...styles.bigButton,
               flex: 1,
               backgroundColor: "#ff9800", // Πορτοκαλί για να ξεχωρίζει
-              background: "linear-gradient(45deg, #006ba8 30%, #f55a00 90%)",
+              background: "linear-gradient(45deg, #015e94 30%, #f53100 90%)",
               fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
               fontWeight: "bold",
             }}
@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
               ...styles.bigButton,
               flex: 1,
               backgroundColor: "#ff0800", // Πορτοκαλί για να ξεχωρίζει
-              background: "linear-gradient(45deg, #ff1e00 30%, #cc0e00 90%)",
+              background: "linear-gradient(45deg, #ff1e00 30%, #a50b00 90%)",
               fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
               fontWeight: "bold",
             }}

@@ -60,12 +60,12 @@ const MistakesBook: React.FC = () => {
                   <div style={styles.questionText}>
                     <span
                       style={{
-                        color: "#d32f2f",
+                        color: "#ffffff",
                         fontWeight: "bold",
                         marginRight: "10px",
                       }}
                     >
-                      ❌
+                      {index + 1}.
                     </span>
                     {item.question || "Άγνωστη ερώτηση"}
                   </div>
@@ -81,7 +81,7 @@ const MistakesBook: React.FC = () => {
                         rel="noopener noreferrer"
                         style={styles.videoLinkButton}
                       >
-                        ▶️ Δες το Βίντεο
+                        Δες το Βίντεο
                       </a>
                     ) : null}
 
@@ -93,7 +93,7 @@ const MistakesBook: React.FC = () => {
                         rel="noopener noreferrer"
                         style={styles.linkButton}
                       >
-                        📖 Διάβασε τη Θεωρία
+                        Διάβασε τη Θεωρία
                       </a>
                     ) : null}
 
