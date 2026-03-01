@@ -9,9 +9,11 @@
 cd backend
 
 2.Virtual Environment,
+
 ΓΙΑ WINDOWS :
 
 python -m venv venv
+
 venv\Scripts\activate
 
 ΓΙΑ macOS KAI LINUX :
