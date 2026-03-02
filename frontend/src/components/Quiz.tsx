@@ -178,7 +178,7 @@ const Quiz: React.FC = () => {
     }
   };
 
-  // --- ΝΕΑ ΣΥΝΑΡΤΗΣΗ: Πηγαίνει στο επόμενο κεφάλαιο ---
+  // --- Πηγαίνει στο επόμενο κεφάλαιο ---
   const handleGoToNext = () => {
     if (nextConceptId) {
       // Αποθήκευση του νέου ID
@@ -188,7 +188,6 @@ const Quiz: React.FC = () => {
     }
   };
 
-  // --- RENDER ---
   const renderDifficultyBadge = (difficulty: string) => {
     const colors: any = { easy: "#4caf50", medium: "#ff9800", hard: "#f44336" };
     return (
@@ -212,7 +211,7 @@ const Quiz: React.FC = () => {
     const correct = quizHistory.filter((r) => r.isCorrect).length;
     const score = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-    // Έλεγχος αν πέρασε τη βάση (π.χ. 50%)
+    // Έλεγχος αν πέρασε τη βάση
     const passed = score >= 50;
 
     return (
@@ -232,7 +231,7 @@ const Quiz: React.FC = () => {
                 textAlign: "center",
                 margin: "20px 0",
                 padding: "20px",
-                backgroundColor: passed ? "#e8f5e9" : "#ffebee", // Πράσινο αν πέρασε, κόκκινο αν κόπηκε
+                backgroundColor: passed ? "#e8f5e9" : "#ffebee",
                 borderRadius: "10px",
               }}
             >

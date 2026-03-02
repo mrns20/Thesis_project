@@ -39,9 +39,9 @@ const MistakesBook: React.FC = () => {
 
   // Βοηθητική συνάρτηση για το χρώμα της μπάρας σκορ
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "#4caf50"; // Πράσινο
-    if (score >= 50) return "#ff9800"; // Πορτοκαλί
-    return "#f44336"; // Κόκκινο
+    if (score >= 80) return "#4caf50";
+    if (score >= 50) return "#ff9800";
+    return "#f44336";
   };
 
   return (
@@ -181,7 +181,6 @@ const MistakesBook: React.FC = () => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  // Αυξήσαμε το maxWidth από 800px σε 1100px για να χωράνε 2 στήλες
   container: { maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" },
   headerRow: {
     display: "flex",
@@ -206,10 +205,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: "wrap",
   },
 
-  // Αριστερή Στήλη (Λάθη) - Παίρνει το διπλάσιο χώρο (flex: 2)
   listColumn: { flex: "2 1 600px" },
 
-  // Δεξιά Στήλη (Αξιολόγηση) - Παίρνει λιγότερο χώρο (flex: 1) και παραμένει sticky
   evalColumn: { flex: "1 1 300px", top: "20px" },
 
   evalCard: {

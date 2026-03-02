@@ -27,18 +27,13 @@ const Dashboard: React.FC = () => {
     fetchMap();
   }, []);
 
-  // --- Η ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΠΟΥ ZHTΗΣΕΣ ---
-  // Αποθηκεύει ποιο μάθημα διάλεξες και σε πάει στο Quiz
   const handleStartQuiz = (conceptId: number) => {
-    // 1. Αποθήκευση ID στο LocalStorage
     localStorage.setItem("currentConceptId", conceptId.toString());
 
-    // 2. Μετάβαση στο Quiz
     navigate("/quiz");
   };
 
   const handleGlobalReset = async () => {
-    // Επιβεβαίωση για να μην το πατήσει κατά λάθος
     if (
       window.confirm(
         "⚠️ ΠΡΟΣΟΧΗ: Είσαι σίγουρος;\n\nΑυτό θα διαγράψει ΟΛΗ την πρόοδό σου, το Mastery και τα Λάθη από το τετράδιο.\n\nΗ ενέργεια δεν αναιρείται.",
@@ -50,9 +45,6 @@ const Dashboard: React.FC = () => {
         localStorage.removeItem("currentConceptId");
         localStorage.removeItem("isGeneralPractice");
 
-        // alert("Η πρόοδος διαγράφηκε επιτυχώς! Ξεκινάμε από την αρχή.");
-
-        // Reload τη σελίδα για να καθαρίσει ο χάρτης
         window.location.reload();
       } catch (err) {
         console.error("Reset failed", err);
@@ -63,18 +55,15 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      {/* Το Νέο Navigation Bar */}
       <Navbar />
 
       <div style={{ padding: "40px", maxWidth: "1000px", margin: "0 auto" }}>
-        {/* Κεντραρισμένος Τίτλος */}
         <h1
           style={{ textAlign: "center", marginBottom: "40px", color: "#333" }}
         >
           Ο Χάρτης με τα κεφάλαια της Python
         </h1>
 
-        {/* --- GRID ΜΕ ΚΑΡΤΕΣ --- */}
         <div style={styles.grid}>
           {concepts.map((concept) => (
             <div
@@ -84,10 +73,10 @@ const Dashboard: React.FC = () => {
                 opacity: concept.is_unlocked ? 1 : 0.6,
                 borderLeft:
                   concept.mastery === 100
-                    ? "5px solid #000000" // Πράσινο αν τελείωσε (το είχες μαύρο στον κώδικά σου, το αφήνω όπως το είχες)
+                    ? "5px solid #000000"
                     : concept.is_unlocked
-                      ? "5px solid #2196f3" // Μπλε αν είναι ενεργό
-                      : "5px solid #999", // Γκρι αν είναι κλειδωμένο
+                      ? "5px solid #2196f3"
+                      : "5px solid #999",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -112,14 +101,12 @@ const Dashboard: React.FC = () => {
                 {concept.mastery}% ολοκληρωμένο
               </p>
 
-              {/* ΚΟΥΜΠΙΑ ΕΝΕΡΓΕΙΑΣ */}
               {concept.is_unlocked && (
                 <button
-                  // ΕΔΩ ΚΑΛΟΥΜΕ ΤΗ ΝΕΑ ΣΥΝΑΡΤΗΣΗ
                   onClick={() => handleStartQuiz(concept.id)}
                   style={{
                     ...styles.actionBtn,
-                    // Αλλάζουμε χρώμα αν είναι επανάληψη
+
                     backgroundColor:
                       concept.mastery === 100 ? "#ff9800" : "#2196f3",
                   }}
@@ -134,7 +121,6 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div style={{ marginTop: "50px", textAlign: "center" }}>
-          {/* Αυτό το κουμπί τώρα πάει στο γενικό quiz, ή μπορείς να το βγάλεις αν θες */}
           <button
             onClick={() => navigate("/quiz")}
             style={{
@@ -150,7 +136,7 @@ const Dashboard: React.FC = () => {
             style={{
               ...styles.bigButton,
               flex: 1,
-              backgroundColor: "#ff9800", // Πορτοκαλί για να ξεχωρίζει
+              backgroundColor: "#ff9800",
               background: "linear-gradient(45deg, #015e94 30%, #f53100 90%)",
               fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
               fontWeight: "bold",
@@ -163,7 +149,7 @@ const Dashboard: React.FC = () => {
             style={{
               ...styles.bigButton,
               flex: 1,
-              backgroundColor: "#ff0800", // Πορτοκαλί για να ξεχωρίζει
+              backgroundColor: "#ff0800",
               background: "linear-gradient(45deg, #ff1e00 30%, #a50b00 90%)",
               fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
               fontWeight: "bold",

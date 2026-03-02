@@ -33,7 +33,7 @@ const UserProfile: React.FC = () => {
     const fetchData = async () => {
       const token = localStorage.getItem("access_token");
       try {
-        // 1. Φόρτωση Προφίλ από το Backend
+        // Φόρτωση Προφίλ από το Backend
         const profileRes = await axios.get(
           "http://127.0.0.1:8000/api/profile/",
           {
@@ -46,7 +46,7 @@ const UserProfile: React.FC = () => {
         setLearningStyle(profileRes.data.learning_style || "visual");
         setBio(profileRes.data.bio || "");
 
-        // 2. Φόρτωση Ποσοστών για το Γράφημα
+        // Φόρτωση Ποσοστών για το Γράφημα
         const conceptsRes = await quizAPI.getConceptMap();
         const formattedData = conceptsRes.data.map((c: Concept) => ({
           subject: c.name,
@@ -86,7 +86,7 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  // --- Λογική για το Απλό Ημερολόγιο ---
+  //Λογική για το Απλό Ημερολόγιο
   const today = new Date();
   const currentMonth = today.toLocaleString("el-GR", { month: "long" });
   const currentYear = today.getFullYear();
@@ -112,7 +112,6 @@ const UserProfile: React.FC = () => {
         </div>
 
         <div style={styles.gridContainer}>
-          {/* ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ: Φόρμα Στοιχείων */}
           <div style={styles.card}>
             <h3 style={styles.cardTitle}>Προσωπικά Στοιχεία</h3>
             <form onSubmit={handleSubmit} style={styles.form}>
@@ -193,7 +192,6 @@ const UserProfile: React.FC = () => {
             </form>
           </div>
 
-          {/* ΔΕΞΙΑ ΣΤΗΛΗ: Widgets */}
           <div style={styles.rightColumn}>
             <div style={{ ...styles.card, marginBottom: "20px" }}>
               <h3 style={styles.cardTitle}>Ιστός Δεξιοτήτων </h3>

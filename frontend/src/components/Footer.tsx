@@ -17,11 +17,11 @@ const Footer: React.FC = () => {
 
 const styles = {
   footer: {
-    backgroundColor: "#282c34", // Σκούρο χρώμα για contrast
+    backgroundColor: "#282c34",
     color: "white",
     textAlign: "center" as "center",
     padding: "20px",
-    marginTop: "auto", // Αυτό βοηθάει να σπρώχνεται προς τα κάτω
+    marginTop: "auto",
     width: "100%",
   },
   text: {

@@ -9,7 +9,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Quiz from "./components/Quiz";
-import Footer from "./components/Footer"; // <--- Μην ξεχάσεις αυτό!
+import Footer from "./components/Footer";
 import UserProfile from "./components/UserProfile";
 import MistakesBook from "./components/MistakesBook";
 
@@ -22,7 +22,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <Router>
-      {/* Αλλαγή Layout: Χρησιμοποιούμε Flexbox για να πιάνει όλο το ύψος 
+      {/* Χρησιμοποιούμε Flexbox για να πιάνει όλο το ύψος 
           και να σπρώχνει το Footer κάτω.
       */}
       <div

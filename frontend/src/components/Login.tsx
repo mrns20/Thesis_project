@@ -13,7 +13,7 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      // 1. ΣΥΝΔΕΣΗ (Login)
+      // 1. ΣΥΝΔΕΣΗ
       const res = await axios.post("http://127.0.0.1:8000/api/login/", {
         username: username,
         password: password,
@@ -44,7 +44,6 @@ const Login: React.FC = () => {
         );
       }
 
-      // 4. ΤΕΛΙΚΟΣ ΠΡΟΟΡΙΣΜΟΣ -> Dashboard
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Σφάλμα Login:", err);
@@ -53,9 +52,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    // Προσθέτουμε flex-direction: column στο container για να μπει το logo από πάνω
     <div style={{ ...styles.container, flexDirection: "column" }}>
-      {/* ΤΟ ΝΕΟ ΛΟΓΟΤΥΠΟ (Ακριβώς όπως στο Navbar) */}
       <h1
         style={{
           color: "#37b9a4",
@@ -148,7 +145,7 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     height: "100%",
-    minHeight: "80vh", // Αλλάξαμε λίγο το ύψος για να φαίνεται σωστά κεντραρισμένο
+    minHeight: "80vh",
     backgroundColor: "#f0f2f5",
   },
   card: {

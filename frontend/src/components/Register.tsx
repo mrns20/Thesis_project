@@ -21,7 +21,7 @@ const Register: React.FC = () => {
     try {
       await authAPI.register(formData);
       setSuccess(true);
-      // Μετά από 2 δευτερόλεπτα, πήγαινε τον στο Login
+      // Μετά από 2 sec, πήγαινε τον στο Login
       setTimeout(() => {
         navigate("/");
       }, 2000);
@@ -31,9 +31,7 @@ const Register: React.FC = () => {
   };
 
   return (
-    // Προσθήκη flexDirection: column για να μπει το logo από πάνω
     <div style={{ ...styles.container, flexDirection: "column" }}>
-      {/* ΤΟ ΝΕΟ ΛΟΓΟΤΥΠΟ */}
       <h1
         style={{
           color: "#37b9a4",
@@ -124,7 +122,6 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    // ΑΛΛΑΓΗ ΕΔΩ: Αφήνουμε χώρο για το footer (100vh - 100px)
     minHeight: "80vh",
     backgroundColor: "#f0f2f5",
   },

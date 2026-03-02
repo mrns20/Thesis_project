@@ -12,7 +12,7 @@ const Navbar: React.FC = () => {
 
   return (
     <nav style={styles.navbar}>
-      {/* Αριστερά: Το Λογότυπο (όταν πατιέται πάει Dashboard) */}
+      {/* Αριστερά: Το Λογότυπο */}
       <div
         onClick={() => navigate("/dashboard")}
         style={styles.logo}
@@ -41,23 +41,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     padding: "15px 40px",
     backgroundColor: "#323a3b",
-    boxShadow: "0 2px 10px rgba(73, 68, 68, 0.08)", // Ελαφριά σκιά από κάτω
-    position: "sticky", // Μένει καρφωμένο πάνω όταν σκρολάρεις
+    boxShadow: "0 2px 10px rgba(73, 68, 68, 0.08)",
+    position: "sticky",
     top: 0,
     zIndex: 1000,
   },
   logo: {
-    color: "#37b9a4", // Όμορφο Παστέλ Πράσινο
-    fontSize: "2.2rem", // Αρκετά μεγαλύτερο από τα κουμπιά
+    color: "#37b9a4",
+    fontSize: "2.2rem",
     fontWeight: "900",
-    fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif', // Η κυκλική γραμματοσειρά
+    fontFamily: '"Nunito", "Quicksand", "Comic Sans MS", sans-serif',
     cursor: "pointer",
     userSelect: "none",
     letterSpacing: "1px",
   },
   buttonGroup: {
     display: "flex",
-    gap: "15px", // Κενό ανάμεσα στα κουμπιά
+    gap: "15px",
   },
   profileBtn: {
     padding: "10px 20px",
@@ -65,7 +65,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "#21d4f3",
     color: "white",
     border: "none",
-    borderRadius: "25px", // Στρογγυλεμένα κουμπιά για να ταιριάζουν με το logo
+    borderRadius: "25px",
     fontWeight: "bold",
     fontSize: "1rem",
   },

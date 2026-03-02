@@ -1,18 +1,16 @@
 body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box; /* Αυτό είναι το μυστικό! */
+  box-sizing: border-box;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Πρόσθεσε και αυτό για σιγουριά */
-  overflow-x: hidden; /* Κρύβει την οριζόντια μπάρα αν υπάρχει */
+  overflow-x: hidden;
 }
 
-/* Πρόσθεσε και αυτόν τον κανόνα για να πιάνει όλο το ύψος σωστά */
 #root {
   height: 100%;
 }
